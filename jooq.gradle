@@ -28,7 +28,7 @@ jooq {
                 records = false
             }
             target {
-                packageName = 'com.epam.reportportal.extension.example.jooq'
+                packageName = 'com.epam.reportportal.extension.jira.jooq'
                 directory = 'src/main/java/'
             }
         }
