@@ -74,7 +74,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 
 	public static final String SCHEMA_SCRIPTS_DIR = "schema";
 
-	private static final String PLUGIN_ID = "cloud-jira";
+	private static final String PLUGIN_ID = "JIRA Cloud";
 
 	private final String resourcesDir;
 
