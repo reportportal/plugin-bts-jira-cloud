@@ -15,6 +15,7 @@
  */
 package com.epam.reportportal.extension.jira;
 
+import com.epam.reportportal.extension.IntegrationGroupEnum;
 import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
@@ -149,6 +150,11 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 	@Override
 	public PluginCommand<?> getCommandToExecute(String commandName) {
 		return pluginCommandMapping.get().get(commandName);
+	}
+
+	@Override
+	public IntegrationGroupEnum getIntegrationGroup() {
+		return IntegrationGroupEnum.BTS;
 	}
 
 	@PostConstruct
