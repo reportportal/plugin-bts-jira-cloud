@@ -1,6 +1,5 @@
 {
-  "name": "example-plugin",
-  "private": true,
+  "name": "plugin-cloud-jira",
   "version": "1.0.0",
   "description": "",
   "main": "src/index.js",
@@ -15,7 +14,7 @@
     "postcommit": "git update-index --again"
   },
   "keywords": [],
-  "author": "",
+  "author": "ReportPortal.io",
   "license": "Apache-2.0",
   "devDependencies": {
     "@babel/core": "^7.8.4",
