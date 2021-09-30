@@ -1,4 +1,4 @@
 window.RP.registerPlugin({
-  name: 'Jira Cloud',
+  name: 'JIRA Cloud',
   extensions: [],
 });
