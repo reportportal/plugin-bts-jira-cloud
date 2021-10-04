@@ -15,6 +15,7 @@ apply from: 'jooq.gradle'
 apply from: 'ui.gradle'
 
 repositories {
+    maven { url "https://packages.atlassian.com/maven/repository/public" }
     mavenCentral()
     mavenLocal()
     if (!releaseMode) {
@@ -24,7 +25,7 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.0.0' : 'com.github.reportportal:commons-bom:4b7ed8a')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.0.0' : 'com.github.reportportal:commons-bom:c33bda7')
     }
 }
 
@@ -33,8 +34,8 @@ dependencies {
         implementation 'com.epam.reportportal:plugin-api'
         annotationProcessor 'com.epam.reportportal:plugin-api'
     } else {
-        implementation 'com.github.reportportal:plugin-api:48e08b04'
-        annotationProcessor 'com.github.reportportal:plugin-api:48e08b04'
+        implementation 'com.github.reportportal:plugin-api:b3ef4ec'
+        annotationProcessor 'com.github.reportportal:plugin-api:b3ef4ec'
     }
 
     implementation group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.1'
@@ -42,6 +43,12 @@ dependencies {
     implementation group: 'javax.el', name: 'javax.el-api', version: '3.0.0'
     implementation group: 'org.jooq', name: 'jooq', version: '3.14.4'
     jooqRuntime 'org.postgresql:postgresql:42.2.13'
+
+    compile 'ch.qos.logback:logback-classic:1.2.3'
+    compile 'org.slf4j:slf4j-api:1.7.25'
+
+    compile 'io.atlassian.fugue:fugue:4.7.2'
+    compile('com.atlassian.jira:jira-rest-java-client-core:5.2.1')
 
     testImplementation('org.junit.jupiter:junit-jupiter:5.6.0')
     testCompile 'org.hamcrest:hamcrest-all:1.3'

@@ -15,6 +15,9 @@
  */
 package com.epam.reportportal.extension.jira;
 
+import com.atlassian.jira.rest.client.api.JiraRestClient;
+import com.atlassian.jira.rest.client.auth.BasicHttpAuthenticationHandler;
+import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.epam.reportportal.extension.IntegrationGroupEnum;
 import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
@@ -22,6 +25,7 @@ import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.reportportal.extension.event.PluginEvent;
 import com.epam.reportportal.extension.event.StartLaunchEvent;
 import com.epam.reportportal.extension.jira.command.binary.GetFileCommand;
+import com.epam.reportportal.extension.jira.command.conncetion.TestConnectionCommand;
 import com.epam.reportportal.extension.jira.command.entity.CreateEntityCommand;
 import com.epam.reportportal.extension.jira.command.entity.DeleteEntityCommand;
 import com.epam.reportportal.extension.jira.command.utils.RequestEntityConverter;
@@ -37,6 +41,10 @@ import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
 import com.epam.ta.reportportal.dao.LaunchRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.integration.IntegrationParams;
+import com.epam.ta.reportportal.exception.ReportPortalException;
+import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -56,6 +64,7 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -159,7 +168,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 
 	@PostConstruct
 	public void createIntegration() {
-		initListeners();
+//		initListeners();
 //		initSchema();
 	}
 
@@ -199,7 +208,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 				new CreateEntityCommand(projectRepository, requestEntityConverter, entityServiceSupplier.get())
 		);
 		pluginCommandMapping.put("deleteEntity", new DeleteEntityCommand(projectRepository, entityServiceSupplier.get()));
-		pluginCommandMapping.put("testConnection", (integration, params) -> true);
+		pluginCommandMapping.put("testConnection", new TestConnectionCommand());
 		return pluginCommandMapping;
 	}
 }
