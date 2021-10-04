@@ -6,7 +6,7 @@
   "scripts": {
     "build": "webpack --mode=production",
     "dev": "webpack --mode=development --watch",
-    "start": "static build -p 9090 -H '{\"Access-Control-Allow-Origin\": \"*\",\"Access-Control-Allow-Methods\": \"*\",\"Access-Control-Allow-Headers\": \"*\", \"Cache-Control\": \"no-cache, no-store, must-revalidate\"}'",
+    "start": "static build -p 9090 -H \"{\"\"Access-Control-Allow-Origin\"\": \"\"*\"\",\"\"Access-Control-Allow-Methods\"\": \"\"*\"\",\"\"Access-Control-Allow-Headers\"\": \"\"*\"\", \"\"Cache-Control\"\": \"\"no-cache, no-store, must-revalidate\"\"}\"",
     "eslint": "eslint \"./**/*.jsx\" \"./**/*.js\"",
     "lint": "npm run eslint",
     "format": "npm run eslint -- --fix",
