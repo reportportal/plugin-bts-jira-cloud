@@ -1,4 +1,4 @@
-package com.epam.reportportal.extension.jira.command.conncetion;
+package com.epam.reportportal.extension.jira.command.connection;
 
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.epam.reportportal.extension.PluginCommand;
