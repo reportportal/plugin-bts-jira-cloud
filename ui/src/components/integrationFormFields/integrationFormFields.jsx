@@ -1,10 +1,18 @@
 export const IntegrationFormFields = (props) => {
-  const { initialize, disabled, lineAlign, initialData, ...extensionProps } = props;
+  const { initialize, disabled, lineAlign, initialData, updateMetaData, ...extensionProps } = props;
   const {
     lib: { React },
     components: { IntegrationFormField, FieldErrorHint, Input, InputTextArea },
     validators: { requiredField, btsUrl, btsProject, btsIntegrationName },
+    constants: { SECRET_FIELDS_KEY },
   } = extensionProps;
+
+  React.useEffect(() => {
+    initialize(initialData);
+    updateMetaData({
+      [SECRET_FIELDS_KEY]: ['apiToken'],
+    });
+  }, []);
 
   return (
     <>
