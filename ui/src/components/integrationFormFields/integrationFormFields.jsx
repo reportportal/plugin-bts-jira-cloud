@@ -1,3 +1,5 @@
+import { LABELS } from 'components/constans';
+
 export const IntegrationFormFields = (props) => {
   const { initialize, disabled, lineAlign, initialData, updateMetaData, ...extensionProps } = props;
   const {
@@ -19,7 +21,7 @@ export const IntegrationFormFields = (props) => {
       <IntegrationFormField
         name="integrationName"
         disabled={disabled}
-        label="Integration Name"
+        label={LABELS.INTEGRATION_NAME}
         required
         maxLength="55"
         validate={btsIntegrationName}
@@ -32,7 +34,7 @@ export const IntegrationFormFields = (props) => {
       <IntegrationFormField
         name="url"
         disabled={disabled}
-        label="Link to BTS"
+        label={LABELS.URL}
         required
         validate={btsUrl}
         lineAlign={lineAlign}
@@ -44,7 +46,7 @@ export const IntegrationFormFields = (props) => {
       <IntegrationFormField
         name="project"
         disabled={disabled}
-        label="Project name in BTS"
+        label={LABELS.PROJECT}
         required
         maxLength="80"
         validate={btsProject}
@@ -57,7 +59,7 @@ export const IntegrationFormFields = (props) => {
       <IntegrationFormField
         name="email"
         disabled={disabled}
-        label="Login or e-mail"
+        label={LABELS.EMAIl}
         required
         lineAlign={lineAlign}
         validate={requiredField}
@@ -68,7 +70,7 @@ export const IntegrationFormFields = (props) => {
       </IntegrationFormField>
       <IntegrationFormField
         name="apiToken"
-        label="API Token"
+        label={LABELS.TOKEN}
         required
         disabled={disabled}
         lineAlign={lineAlign}
