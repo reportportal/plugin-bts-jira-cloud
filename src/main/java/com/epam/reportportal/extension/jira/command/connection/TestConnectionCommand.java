@@ -1,7 +1,7 @@
 package com.epam.reportportal.extension.jira.command.connection;
 
 import com.atlassian.jira.rest.client.api.JiraRestClient;
-import com.epam.reportportal.extension.PluginCommand;
+import com.epam.reportportal.extension.NamedPluginCommand;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
@@ -17,7 +17,12 @@ import static org.hibernate.bytecode.BytecodeLogger.LOGGER;
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-public class TestConnectionCommand implements PluginCommand<Boolean> {
+public class TestConnectionCommand implements NamedPluginCommand<Boolean> {
+
+	@Override
+	public String getName() {
+		return "testConnection";
+	}
 
 	@Override
 	public Boolean executeCommand(Integration integration, Map<String, Object> params) {
@@ -34,7 +39,7 @@ public class TestConnectionCommand implements PluginCommand<Boolean> {
 		String apiToken = CloudJiraProperties.API_TOKEN.getParam(integrationParams)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Api token is not specified."));
 		String project = CloudJiraProperties.PROJECT.getParam(integrationParams)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Project is not specified."));
+				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Project key is not specified."));
 
 		try (JiraRestClient restClient = getClient(url, username, apiToken)) {
 			return restClient.getProjectClient().getProject(project).claim() != null;

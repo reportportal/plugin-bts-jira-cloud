@@ -34,9 +34,12 @@ dependencies {
         implementation 'com.epam.reportportal:plugin-api'
         annotationProcessor 'com.epam.reportportal:plugin-api'
     } else {
-        implementation 'com.github.reportportal:plugin-api:b3ef4ec'
-        annotationProcessor 'com.github.reportportal:plugin-api:b3ef4ec'
+        implementation 'com.github.reportportal:plugin-api:3756124'
+        annotationProcessor 'com.github.reportportal:plugin-api:3756124'
     }
+
+//    implementation group: 'org.glassfish', name: 'javax.el', version: '3.0.0'
+//    implementation 'org.springframework.boot:spring-boot-starter-web'
 
     implementation group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.1'
     implementation group: 'org.jooq', name: 'jooq', version: '3.14.4'
