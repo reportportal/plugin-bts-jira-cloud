@@ -5,6 +5,8 @@ import com.atlassian.jira.rest.client.api.GetCreateIssueMetadataOptionsBuilder;
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.api.domain.*;
 import com.epam.reportportal.extension.ProjectManagerCommand;
+import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
+import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.dao.ProjectRepository;
@@ -20,9 +22,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static com.epam.reportportal.extension.jira.command.utils.CloudJiraClientUtils.getClient;
-import static com.epam.reportportal.extension.jira.command.utils.CloudJiraClientUtils.getProject;
-
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
@@ -31,8 +30,11 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
 	private static final String ISSUE_TYPE = "issueType";
 	private static final Logger LOGGER = LoggerFactory.getLogger(GetIssueFieldsCommand.class);
 
-	public GetIssueFieldsCommand(ProjectRepository projectRepository) {
+	private final CloudJiraClientProvider cloudJiraClientProvider;
+
+	public GetIssueFieldsCommand(ProjectRepository projectRepository, CloudJiraClientProvider cloudJiraClientProvider) {
 		super(projectRepository);
+		this.cloudJiraClientProvider = cloudJiraClientProvider;
 	}
 
 	@Override
@@ -48,8 +50,15 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
 				.map(it -> (String) it)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Issue type is not provided"));
 
-		try (JiraRestClient client = getClient(integration.getParams())) {
-			Project jiraProject = getProject(client, integration.getParams());
+		try (JiraRestClient client = cloudJiraClientProvider.get(integration.getParams())) {
+
+			Project jiraProject = client.getProjectClient()
+					.getProject(CloudJiraProperties.PROJECT.getParam(integration.getParams())
+							.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+									"Project is not specified."
+							)))
+					.claim();
+
 			Optional<IssueType> issueType = StreamSupport.stream(jiraProject.getIssueTypes().spliterator(), false)
 					.filter(input -> issueTypeParam.equalsIgnoreCase(input.getName()))
 					.findFirst();

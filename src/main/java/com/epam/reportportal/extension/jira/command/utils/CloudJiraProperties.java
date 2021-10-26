@@ -3,6 +3,7 @@ package com.epam.reportportal.extension.jira.command.utils;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -21,6 +22,10 @@ public enum CloudJiraProperties {
 		this.name = name;
 	}
 
+	public Optional<String> getParam(Map<String, Object> params) {
+		return Optional.ofNullable(params.get(this.name)).map(String::valueOf);
+	}
+
 	public Optional<String> getParam(IntegrationParams params) {
 		return Optional.ofNullable(params.getParams().get(this.name)).map(o -> (String) o);
 	}
@@ -30,5 +35,9 @@ public enum CloudJiraProperties {
 			params.setParams(new HashMap<>());
 		}
 		params.getParams().put(this.name, value);
+	}
+
+	public String getName() {
+		return name;
 	}
 }
