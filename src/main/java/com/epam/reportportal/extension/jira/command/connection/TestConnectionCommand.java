@@ -1,7 +1,23 @@
+/*
+ * Copyright 2021 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.epam.reportportal.extension.jira.command.connection;
 
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.epam.reportportal.extension.NamedPluginCommand;
+import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
@@ -10,7 +26,6 @@ import com.epam.ta.reportportal.ws.model.ErrorType;
 
 import java.util.Map;
 
-import static com.epam.reportportal.extension.jira.command.utils.CloudJiraClientUtils.getClient;
 import static java.util.Optional.ofNullable;
 import static org.hibernate.bytecode.BytecodeLogger.LOGGER;
 
@@ -18,6 +33,12 @@ import static org.hibernate.bytecode.BytecodeLogger.LOGGER;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class TestConnectionCommand implements NamedPluginCommand<Boolean> {
+
+	private final CloudJiraClientProvider cloudJiraClientProvider;
+
+	public TestConnectionCommand(CloudJiraClientProvider cloudJiraClientProvider) {
+		this.cloudJiraClientProvider = cloudJiraClientProvider;
+	}
 
 	@Override
 	public String getName() {
@@ -29,19 +50,10 @@ public class TestConnectionCommand implements NamedPluginCommand<Boolean> {
 		IntegrationParams integrationParams = ofNullable(integration.getParams()).orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 				"Integration params are not specified."
 		));
-
-		String url = CloudJiraProperties.URL.getParam(integrationParams)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						"Url to the Cloud Jira is not specified."
-				));
-		String username = CloudJiraProperties.EMAIL.getParam(integrationParams)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "User email is not specified."));
-		String apiToken = CloudJiraProperties.API_TOKEN.getParam(integrationParams)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Api token is not specified."));
 		String project = CloudJiraProperties.PROJECT.getParam(integrationParams)
 				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Project key is not specified."));
 
-		try (JiraRestClient restClient = getClient(url, username, apiToken)) {
+		try (JiraRestClient restClient = cloudJiraClientProvider.get(integrationParams)) {
 			return restClient.getProjectClient().getProject(project).claim() != null;
 		} catch (Exception e) {
 			LOGGER.error("Unable to connect to Cloud Jira: " + e.getMessage(), e);
