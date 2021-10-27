@@ -162,7 +162,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 
 	@PostConstruct
 	public void createIntegration() {
-		//		initListeners();
+				initListeners();
 		//		initSchema();
 	}
 
