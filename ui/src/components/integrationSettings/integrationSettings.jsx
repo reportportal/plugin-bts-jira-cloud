@@ -5,7 +5,17 @@ export const IntegrationSettings = (props) => {
   const {
     lib: { React, useDispatch },
     actions: { showModalAction, hideModalAction },
-    components: { IntegrationSettings: IntegrationSettingsContainer, BtsAuthFieldsInfo },
+    components: {
+      IntegrationSettings: IntegrationSettingsContainer,
+      BtsAuthFieldsInfo,
+      BtsPropertiesForIssueForm,
+    },
+    utils: {
+      getDefectFormFields,
+    },
+    constants: {
+      BTS_FIELDS_FORM,
+    }
   } = extensionProps;
 
   const dispatch = useDispatch();
@@ -64,15 +74,22 @@ export const IntegrationSettings = (props) => {
     onClick: editAuthorizationClickHandler,
   });
 
+  const onSubmit = (integrationData, callback, metaData) => {
+    const { fields, checkedFieldsIds = {}, ...meta } = metaData;
+    const defectFormFields = getDefectFormFields(fields, checkedFieldsIds, integrationData);
+
+    onUpdate({ defectFormFields }, callback, meta);
+  };
+
   return (
     <IntegrationSettingsContainer
       data={data}
       goToPreviousPage={goToPreviousPage}
-      onUpdate={() => {}}
+      onUpdate={onSubmit}
       editAuthConfig={getEditAuthConfig()}
       isGlobal={isGlobal}
-      formFieldsComponent={() => <div>TBD</div>}
-      formKey="BTS_FIELDS_FORM"
+      formFieldsComponent={BtsPropertiesForIssueForm}
+      formKey={BTS_FIELDS_FORM}
       isEmptyConfiguration={
         !data.integrationParameters.defectFormFields ||
         !data.integrationParameters.defectFormFields.length

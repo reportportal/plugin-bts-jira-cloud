@@ -5,7 +5,7 @@ export const IntegrationFormFields = (props) => {
   const {
     lib: { React },
     components: { IntegrationFormField, FieldErrorHint, Input, InputTextArea },
-    validators: { requiredField, btsUrl, btsProject, btsIntegrationName },
+    validators: { requiredField, btsUrl, btsProject, btsIntegrationName, email },
     constants: { SECRET_FIELDS_KEY },
   } = extensionProps;
 
@@ -62,7 +62,7 @@ export const IntegrationFormFields = (props) => {
         label={LABELS.EMAIl}
         required
         lineAlign={lineAlign}
-        validate={requiredField}
+        validate={email}
       >
         <FieldErrorHint>
           <Input mobileDisabled />
