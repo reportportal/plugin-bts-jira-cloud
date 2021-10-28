@@ -24,6 +24,7 @@ import com.epam.reportportal.extension.event.PluginEvent;
 import com.epam.reportportal.extension.event.StartLaunchEvent;
 import com.epam.reportportal.extension.jira.command.GetIssueFieldsCommand;
 import com.epam.reportportal.extension.jira.command.GetIssueTypesCommand;
+import com.epam.reportportal.extension.jira.command.RetrieveValidParams;
 import com.epam.reportportal.extension.jira.command.binary.GetFileCommand;
 import com.epam.reportportal.extension.jira.command.connection.TestConnectionCommand;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
@@ -218,6 +219,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 		commands.add(new TestConnectionCommand(cloudJiraClientProviderSupplier.get()));
 		commands.add(new GetIssueFieldsCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
 		commands.add(new GetIssueTypesCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
+		commands.add(new RetrieveValidParams(basicTextEncryptorSupplier.get()));
 
 		final Map<String, PluginCommand<?>> commandMap = commands.stream().collect(Collectors.toMap(NamedPluginCommand::getName, it -> it));
 
