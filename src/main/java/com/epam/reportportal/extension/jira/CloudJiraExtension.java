@@ -26,6 +26,7 @@ import com.epam.reportportal.extension.jira.command.GetIssueFieldsCommand;
 import com.epam.reportportal.extension.jira.command.GetIssueTypesCommand;
 import com.epam.reportportal.extension.jira.command.binary.GetFileCommand;
 import com.epam.reportportal.extension.jira.command.connection.TestConnectionCommand;
+import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.RequestEntityConverter;
 import com.epam.reportportal.extension.jira.dao.EntityRepository;
 import com.epam.reportportal.extension.jira.dao.impl.EntityRepositoryImpl;
@@ -44,10 +45,12 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.jasypt.util.text.BasicTextEncryptor;
 import org.jooq.DSLContext;
 import org.pf4j.Extension;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ApplicationEventMulticaster;
@@ -95,6 +98,10 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 
 	private final Supplier<EntityService> entityServiceSupplier;
 
+	private final Supplier<BasicTextEncryptor> basicTextEncryptorSupplier;
+
+	private final Supplier<CloudJiraClientProvider> cloudJiraClientProviderSupplier;
+
 	@Autowired
 	private ApplicationContext applicationContext;
 
@@ -116,6 +123,9 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 	@Autowired
 	private LaunchRepository launchRepository;
 
+	@Value("${rp.auth.encryptor.password:reportportal}")
+	private String salt;
+
 	public CloudJiraExtension(Map<String, Object> initParams) {
 		resourcesDir = IntegrationTypeProperties.RESOURCES_DIRECTORY.getValue(initParams).map(String::valueOf).orElse("");
 		objectMapper = configureObjectMapper();
@@ -132,6 +142,14 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 		entityRepositorySupplier = new MemoizingSupplier<>(() -> new EntityRepositoryImpl(dsl));
 
 		entityServiceSupplier = new MemoizingSupplier<>(() -> new EntityService(entityRepositorySupplier.get()));
+
+		basicTextEncryptorSupplier = new MemoizingSupplier<>(() -> {
+			final BasicTextEncryptor basicTextEncryptor = new BasicTextEncryptor();
+			basicTextEncryptor.setPassword(salt);
+			return basicTextEncryptor;
+		});
+
+		cloudJiraClientProviderSupplier = new MemoizingSupplier<>(() -> new CloudJiraClientProvider(basicTextEncryptorSupplier.get()));
 	}
 
 	protected ObjectMapper configureObjectMapper() {
@@ -162,7 +180,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 
 	@PostConstruct
 	public void createIntegration() {
-				initListeners();
+		initListeners();
 		//		initSchema();
 	}
 
@@ -197,9 +215,9 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 
 	private Map<String, PluginCommand<?>> getCommands() {
 		List<NamedPluginCommand<?>> commands = new ArrayList<>();
-		commands.add(new TestConnectionCommand());
-		commands.add(new GetIssueFieldsCommand(projectRepository));
-		commands.add(new GetIssueTypesCommand(projectRepository));
+		commands.add(new TestConnectionCommand(cloudJiraClientProviderSupplier.get()));
+		commands.add(new GetIssueFieldsCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
+		commands.add(new GetIssueTypesCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
 
 		final Map<String, PluginCommand<?>> commandMap = commands.stream().collect(Collectors.toMap(NamedPluginCommand::getName, it -> it));
 
