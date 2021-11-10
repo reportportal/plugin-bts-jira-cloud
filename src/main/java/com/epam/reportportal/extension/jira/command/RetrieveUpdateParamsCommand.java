@@ -22,7 +22,7 @@ public class RetrieveUpdateParamsCommand implements NamedPluginCommand<Map<Strin
 
 	@Override
 	public String getName() {
-		return "retrieveCreate";
+		return "retrieveUpdate";
 	}
 
 	@Override
