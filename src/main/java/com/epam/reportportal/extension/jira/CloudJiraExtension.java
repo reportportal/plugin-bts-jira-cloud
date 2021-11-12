@@ -36,7 +36,6 @@ import com.epam.reportportal.extension.jira.event.launch.StartLaunchEventListene
 import com.epam.reportportal.extension.jira.event.plugin.PluginEventHandlerFactory;
 import com.epam.reportportal.extension.jira.event.plugin.PluginEventListener;
 import com.epam.reportportal.extension.jira.info.impl.PluginInfoProviderImpl;
-import com.epam.reportportal.extension.jira.service.EntityService;
 import com.epam.reportportal.extension.jira.utils.MemoizingSupplier;
 import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
@@ -52,27 +51,19 @@ import org.jooq.DSLContext;
 import org.pf4j.Extension;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -98,10 +89,6 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 
 	private final Supplier<EntityRepository> entityRepositorySupplier;
 
-	private final Supplier<EntityService> entityServiceSupplier;
-
-	private final Supplier<BasicTextEncryptor> basicTextEncryptorSupplier;
-
 	private final Supplier<CloudJiraClientProvider> cloudJiraClientProviderSupplier;
 
 	@Autowired
@@ -125,8 +112,8 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 	@Autowired
 	private LaunchRepository launchRepository;
 
-	@Value("${rp.auth.encryptor.password:reportportal}")
-	private String salt;
+	@Autowired
+	private BasicTextEncryptor textEncryptor;
 
 	public CloudJiraExtension(Map<String, Object> initParams) {
 		resourcesDir = IntegrationTypeProperties.RESOURCES_DIRECTORY.getValue(initParams).map(String::valueOf).orElse("");
@@ -143,15 +130,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 
 		entityRepositorySupplier = new MemoizingSupplier<>(() -> new EntityRepositoryImpl(dsl));
 
-		entityServiceSupplier = new MemoizingSupplier<>(() -> new EntityService(entityRepositorySupplier.get()));
-
-		basicTextEncryptorSupplier = new MemoizingSupplier<>(() -> {
-			final BasicTextEncryptor basicTextEncryptor = new BasicTextEncryptor();
-			basicTextEncryptor.setPassword(salt);
-			return basicTextEncryptor;
-		});
-
-		cloudJiraClientProviderSupplier = new MemoizingSupplier<>(() -> new CloudJiraClientProvider(basicTextEncryptorSupplier.get()));
+		cloudJiraClientProviderSupplier = new MemoizingSupplier<>(() -> new CloudJiraClientProvider(textEncryptor));
 	}
 
 	protected ObjectMapper configureObjectMapper() {
@@ -183,7 +162,6 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 	@PostConstruct
 	public void createIntegration() {
 		initListeners();
-		//		initSchema();
 	}
 
 	private void initListeners() {
@@ -192,14 +170,6 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 		);
 		applicationEventMulticaster.addApplicationListener(pluginLoadedListenerSupplier.get());
 		applicationEventMulticaster.addApplicationListener(startLaunchEventListenerSupplier.get());
-	}
-
-	private void initSchema() throws IOException {
-		try (Stream<Path> paths = Files.list(Paths.get(resourcesDir, SCHEMA_SCRIPTS_DIR))) {
-			FileSystemResource[] scriptResources = paths.sorted().map(FileSystemResource::new).toArray(FileSystemResource[]::new);
-			ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator(scriptResources);
-			resourceDatabasePopulator.execute(dataSource);
-		}
 	}
 
 	@Override
@@ -220,8 +190,8 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 		commands.add(new TestConnectionCommand(cloudJiraClientProviderSupplier.get()));
 		commands.add(new GetIssueFieldsCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
 		commands.add(new GetIssueTypesCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
-		commands.add(new RetrieveCreationParamsCommand(basicTextEncryptorSupplier.get()));
-		commands.add(new RetrieveUpdateParamsCommand(basicTextEncryptorSupplier.get()));
+		commands.add(new RetrieveCreationParamsCommand(textEncryptor));
+		commands.add(new RetrieveUpdateParamsCommand(textEncryptor));
 
 		final Map<String, PluginCommand<?>> commandMap = commands.stream().collect(Collectors.toMap(NamedPluginCommand::getName, it -> it));
 
