@@ -1,4 +1,9 @@
-import { IntegrationFormFields, IntegrationSettings } from 'components';
+import {
+  IntegrationFormFields,
+  IntegrationSettings,
+  PostIssueFields,
+  postIssueAction,
+} from 'components';
 
 window.RP.registerPlugin({
   name: 'JIRA Cloud',
@@ -14,6 +19,11 @@ window.RP.registerPlugin({
       title: 'JIRA Cloud plugin settings',
       type: 'uiExtension:integrationSettings',
       component: IntegrationSettings,
+    },
+    {
+      type: 'uiExtension:postIssueForm',
+      component: PostIssueFields,
+      action: postIssueAction,
     },
   ],
 });
