@@ -140,13 +140,14 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
 				}
 
 				//@formatter:off
+				// Skip reporter as it is resolved from credentials
 				// Skip project field as external from list
 				// Skip attachment cause we are not providing this functionality now
 				// Skip timetracking field cause complexity. There are two fields with Original Estimation and Remaining Estimation.
 				// Skip Story Link as greenhopper plugin field.
 				// Skip Sprint field as complex one.
 				//@formatter:on
-				if ("project".equalsIgnoreCase(fieldID) || "attachment".equalsIgnoreCase(fieldID)
+				if ("reporter".equalsIgnoreCase(fieldID) || "project".equalsIgnoreCase(fieldID) || "attachment".equalsIgnoreCase(fieldID)
 						|| "timetracking".equalsIgnoreCase(fieldID) || "Epic Link".equalsIgnoreCase(fieldName) || "Sprint".equalsIgnoreCase(
 						fieldName)) {
 					continue;
