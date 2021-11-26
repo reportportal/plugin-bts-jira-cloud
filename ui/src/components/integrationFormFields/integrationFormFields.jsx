@@ -5,7 +5,7 @@ export const IntegrationFormFields = (props) => {
   const {
     lib: { React },
     components: { IntegrationFormField, FieldErrorHint, Input, InputTextArea },
-    validators: { requiredField, btsUrl, btsProject, btsIntegrationName, email },
+    validators: { requiredField, btsUrl, btsProjectKey, btsIntegrationName, email },
     constants: { SECRET_FIELDS_KEY },
   } = extensionProps;
 
@@ -48,8 +48,8 @@ export const IntegrationFormFields = (props) => {
         disabled={disabled}
         label={LABELS.PROJECT}
         required
-        maxLength="80"
-        validate={btsProject}
+        maxLength="55"
+        validate={btsProjectKey}
         lineAlign={lineAlign}
       >
         <FieldErrorHint>
