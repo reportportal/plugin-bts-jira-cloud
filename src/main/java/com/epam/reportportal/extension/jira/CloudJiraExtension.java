@@ -94,6 +94,9 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 	private IntegrationRepository integrationRepository;
 
 	@Autowired
+	private TicketRepository ticketRepository;
+
+	@Autowired
 	private ProjectRepository projectRepository;
 
 	@Autowired
@@ -144,10 +147,8 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 	@Override
 	public Map<String, ?> getPluginParams() {
 		Map<String, Object> params = new HashMap<>();
-		final ArrayList<Object> commands = new ArrayList<>();
-		commands.add(pluginCommandMapping.get().keySet());
-		commands.add(commonPluginCommandMapping.get().keySet());
-		params.put(ALLOWED_COMMANDS, commands);
+		params.put(ALLOWED_COMMANDS, new ArrayList<>(pluginCommandMapping.get().keySet()));
+		params.put(COMMON_COMMANDS, new ArrayList<>(commonPluginCommandMapping.get().keySet()));
 		return params;
 	}
 
@@ -196,7 +197,8 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 		List<CommonPluginCommand<?>> commands = new ArrayList<>();
 		commands.add(new RetrieveCreationParamsCommand(textEncryptor));
 		commands.add(new RetrieveUpdateParamsCommand(textEncryptor));
-		commands.add(new GetFileCommand(resourcesDir, BINARY_DATA_PROPERTIES_FILE_ID));
+		//		commands.add(new GetFileCommand(resourcesDir, BINARY_DATA_PROPERTIES_FILE_ID));
+		commands.add(new GetIssueCommand(ticketRepository, integrationRepository, cloudJiraClientProviderSupplier.get()));
 		return commands.stream().collect(Collectors.toMap(NamedPluginCommand::getName, it -> it));
 	}
 
@@ -204,6 +206,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 		List<PluginCommand<?>> commands = new ArrayList<>();
 		commands.add(new TestConnectionCommand(cloudJiraClientProviderSupplier.get()));
 		commands.add(new GetIssueFieldsCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
+		commands.add(new GetFileCommand(resourcesDir, BINARY_DATA_PROPERTIES_FILE_ID));
 		commands.add(new GetIssueTypesCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
 		commands.add(new PostTicketCommand(projectRepository,
 				requestEntityConverter,
