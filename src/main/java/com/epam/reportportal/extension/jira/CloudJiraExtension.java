@@ -197,7 +197,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 		List<CommonPluginCommand<?>> commands = new ArrayList<>();
 		commands.add(new RetrieveCreationParamsCommand(textEncryptor));
 		commands.add(new RetrieveUpdateParamsCommand(textEncryptor));
-		//		commands.add(new GetFileCommand(resourcesDir, BINARY_DATA_PROPERTIES_FILE_ID));
+		commands.add(new GetFileCommand(resourcesDir, BINARY_DATA_PROPERTIES_FILE_ID));
 		commands.add(new GetIssueCommand(ticketRepository, integrationRepository, cloudJiraClientProviderSupplier.get()));
 		return commands.stream().collect(Collectors.toMap(NamedPluginCommand::getName, it -> it));
 	}
@@ -206,7 +206,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 		List<PluginCommand<?>> commands = new ArrayList<>();
 		commands.add(new TestConnectionCommand(cloudJiraClientProviderSupplier.get()));
 		commands.add(new GetIssueFieldsCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
-		commands.add(new GetFileCommand(resourcesDir, BINARY_DATA_PROPERTIES_FILE_ID));
+//		commands.add(new GetFileCommand(resourcesDir, BINARY_DATA_PROPERTIES_FILE_ID));
 		commands.add(new GetIssueTypesCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
 		commands.add(new PostTicketCommand(projectRepository,
 				requestEntityConverter,
