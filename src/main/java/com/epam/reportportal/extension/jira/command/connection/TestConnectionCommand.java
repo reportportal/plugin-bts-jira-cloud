@@ -16,7 +16,7 @@
 package com.epam.reportportal.extension.jira.command.connection;
 
 import com.atlassian.jira.rest.client.api.JiraRestClient;
-import com.epam.reportportal.extension.NamedPluginCommand;
+import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
 import com.epam.ta.reportportal.entity.integration.Integration;
@@ -32,7 +32,7 @@ import static org.hibernate.bytecode.BytecodeLogger.LOGGER;
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-public class TestConnectionCommand implements NamedPluginCommand<Boolean> {
+public class TestConnectionCommand implements PluginCommand<Boolean> {
 
 	private final CloudJiraClientProvider cloudJiraClientProvider;
 

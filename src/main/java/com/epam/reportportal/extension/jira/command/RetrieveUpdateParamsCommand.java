@@ -16,9 +16,8 @@
 
 package com.epam.reportportal.extension.jira.command;
 
-import com.epam.reportportal.extension.NamedPluginCommand;
+import com.epam.reportportal.extension.CommonPluginCommand;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
-import com.epam.ta.reportportal.entity.integration.Integration;
 import com.google.common.collect.Maps;
 import org.jasypt.util.text.BasicTextEncryptor;
 
@@ -28,7 +27,7 @@ import java.util.Optional;
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-public class RetrieveUpdateParamsCommand implements NamedPluginCommand<Map<String, Object>> {
+public class RetrieveUpdateParamsCommand implements CommonPluginCommand<Map<String, Object>> {
 
 	private final BasicTextEncryptor textEncryptor;
 
@@ -43,7 +42,7 @@ public class RetrieveUpdateParamsCommand implements NamedPluginCommand<Map<Strin
 
 	@Override
 	//@param integration is always null because it can be not saved yet
-	public Map<String, Object> executeCommand(Integration integration, Map<String, Object> integrationParams) {
+	public Map<String, Object> executeCommand(Map<String, Object> integrationParams) {
 		Map<String, Object> resultParams = Maps.newHashMapWithExpectedSize(integrationParams.size());
 		CloudJiraProperties.URL.getParam(integrationParams).ifPresent(url -> resultParams.put(CloudJiraProperties.URL.getName(), url));
 		CloudJiraProperties.PROJECT.getParam(integrationParams)

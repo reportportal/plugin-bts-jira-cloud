@@ -15,10 +15,7 @@
  */
 package com.epam.reportportal.extension.jira;
 
-import com.epam.reportportal.extension.IntegrationGroupEnum;
-import com.epam.reportportal.extension.NamedPluginCommand;
-import com.epam.reportportal.extension.PluginCommand;
-import com.epam.reportportal.extension.ReportPortalExtensionPoint;
+import com.epam.reportportal.extension.*;
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.reportportal.extension.event.PluginEvent;
 import com.epam.reportportal.extension.event.StartLaunchEvent;
@@ -72,6 +69,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 	private final String resourcesDir;
 
 	private final Supplier<Map<String, PluginCommand<?>>> pluginCommandMapping = new MemoizingSupplier<>(this::getCommands);
+	private final Supplier<Map<String, CommonPluginCommand<?>>> commonPluginCommandMapping = new MemoizingSupplier<>(this::getCommonCommands);
 
 	private final ObjectMapper objectMapper;
 	private final RequestEntityConverter requestEntityConverter;
@@ -94,6 +92,9 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 
 	@Autowired
 	private IntegrationRepository integrationRepository;
+
+	@Autowired
+	private TicketRepository ticketRepository;
 
 	@Autowired
 	private ProjectRepository projectRepository;
@@ -147,12 +148,18 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 	public Map<String, ?> getPluginParams() {
 		Map<String, Object> params = new HashMap<>();
 		params.put(ALLOWED_COMMANDS, new ArrayList<>(pluginCommandMapping.get().keySet()));
+		params.put(COMMON_COMMANDS, new ArrayList<>(commonPluginCommandMapping.get().keySet()));
 		return params;
 	}
 
 	@Override
-	public PluginCommand<?> getCommandToExecute(String commandName) {
+	public PluginCommand<?> getIntegrationCommand(String commandName) {
 		return pluginCommandMapping.get().get(commandName);
+	}
+
+	@Override
+	public CommonPluginCommand<?> getCommonCommand(String commandName) {
+		return commonPluginCommandMapping.get().get(commandName);
 	}
 
 	@Override
@@ -186,24 +193,28 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 		applicationEventMulticaster.removeApplicationListener(startLaunchEventListenerSupplier.get());
 	}
 
-	private Map<String, PluginCommand<?>> getCommands() {
-		List<NamedPluginCommand<?>> commands = new ArrayList<>();
-		commands.add(new TestConnectionCommand(cloudJiraClientProviderSupplier.get()));
-		commands.add(new GetIssueFieldsCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
-		commands.add(new GetIssueTypesCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
+	private Map<String, CommonPluginCommand<?>> getCommonCommands() {
+		List<CommonPluginCommand<?>> commands = new ArrayList<>();
 		commands.add(new RetrieveCreationParamsCommand(textEncryptor));
 		commands.add(new RetrieveUpdateParamsCommand(textEncryptor));
+		commands.add(new GetFileCommand(resourcesDir, BINARY_DATA_PROPERTIES_FILE_ID));
+		commands.add(new GetIssueCommand(ticketRepository, integrationRepository, cloudJiraClientProviderSupplier.get()));
+		return commands.stream().collect(Collectors.toMap(NamedPluginCommand::getName, it -> it));
+	}
+
+	private Map<String, PluginCommand<?>> getCommands() {
+		List<PluginCommand<?>> commands = new ArrayList<>();
+		commands.add(new TestConnectionCommand(cloudJiraClientProviderSupplier.get()));
+		commands.add(new GetIssueFieldsCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
+//		commands.add(new GetFileCommand(resourcesDir, BINARY_DATA_PROPERTIES_FILE_ID));
+		commands.add(new GetIssueTypesCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
 		commands.add(new PostTicketCommand(projectRepository,
 				requestEntityConverter,
 				cloudJiraClientProviderSupplier.get(),
 				jiraTicketDescriptionServiceSupplier.get(),
 				dataStoreService
 		));
-
-		final Map<String, PluginCommand<?>> commandMap = commands.stream().collect(Collectors.toMap(NamedPluginCommand::getName, it -> it));
-
-		commandMap.put("getFile", new GetFileCommand(resourcesDir, BINARY_DATA_PROPERTIES_FILE_ID));
-		return commandMap;
+		return commands.stream().collect(Collectors.toMap(NamedPluginCommand::getName, it -> it));
 
 	}
 }

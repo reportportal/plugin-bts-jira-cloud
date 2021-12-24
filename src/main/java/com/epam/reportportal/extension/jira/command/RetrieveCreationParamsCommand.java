@@ -15,9 +15,8 @@
  */
 package com.epam.reportportal.extension.jira.command;
 
-import com.epam.reportportal.extension.NamedPluginCommand;
+import com.epam.reportportal.extension.CommonPluginCommand;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
-import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.google.common.collect.Maps;
@@ -32,7 +31,7 @@ import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_INTERACT_WITH_I
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-public class RetrieveCreationParamsCommand implements NamedPluginCommand<Map<String, Object>> {
+public class RetrieveCreationParamsCommand implements CommonPluginCommand<Map<String, Object>> {
 
 	private final BasicTextEncryptor textEncryptor;
 
@@ -47,7 +46,7 @@ public class RetrieveCreationParamsCommand implements NamedPluginCommand<Map<Str
 
 	@Override
 	//@param integration is always null because it can be not saved yet
-	public Map<String, Object> executeCommand(Integration integration, Map<String, Object> integrationParams) {
+	public Map<String, Object> executeCommand(Map<String, Object> integrationParams) {
 
 		expect(integrationParams, MapUtils::isNotEmpty).verify(ErrorType.BAD_REQUEST_ERROR, "No integration params provided");
 
