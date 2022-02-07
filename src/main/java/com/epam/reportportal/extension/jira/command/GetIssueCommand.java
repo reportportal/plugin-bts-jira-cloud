@@ -78,17 +78,21 @@ public class GetIssueCommand implements CommonPluginCommand<Ticket> {
 	}
 
 	private Ticket getTicket(String id, IntegrationParams details, JiraRestClient jiraRestClient) {
-		SearchResult issues = jiraRestClient.getSearchClient().searchJql("issue = " + id).claim();
-		if (issues.getTotal() > 0) {
-			Issue issue = jiraRestClient.getIssueClient().getIssue(id).claim();
-			return JIRATicketUtils.toTicket(issue,
-					CloudJiraProperties.URL.getParam(details)
-							.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-									"Url is not specified."
-							))
-			);
-		} else {
-			throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Ticket with id {} is not found", id);
+		try {
+			SearchResult issues = jiraRestClient.getSearchClient().searchJql("issue = " + id).claim();
+			if (issues.getTotal() > 0) {
+				Issue issue = jiraRestClient.getIssueClient().getIssue(id).claim();
+				return JIRATicketUtils.toTicket(issue,
+						CloudJiraProperties.URL.getParam(details)
+								.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+										"Url is not specified."
+								))
+				);
+			} else {
+				throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Ticket with id {} is not found", id);
+			}
+		} catch (Exception e) {
+			throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, e.getMessage());
 		}
 	}
 
