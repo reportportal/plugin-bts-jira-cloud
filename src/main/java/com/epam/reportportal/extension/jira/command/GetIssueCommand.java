@@ -59,7 +59,7 @@ public class GetIssueCommand implements CommonPluginCommand<Ticket> {
 	@Override
 	public Ticket executeCommand(Map<String, Object> params) {
 		final com.epam.ta.reportportal.entity.bts.Ticket ticket = ticketRepository.findByTicketId((String) Optional.ofNullable(params.get(
-				TICKET_ID)).orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, TICKET_ID + " must be provided")))
+						TICKET_ID)).orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, TICKET_ID + " must be provided")))
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Ticket not found with id " + TICKET_ID));
 		final Long projectId = (Long) Optional.ofNullable(params.get(PROJECT_ID))
 				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, PROJECT_ID + " must be provided"));
@@ -78,8 +78,13 @@ public class GetIssueCommand implements CommonPluginCommand<Ticket> {
 	}
 
 	private Ticket getTicket(String id, IntegrationParams details, JiraRestClient jiraRestClient) {
-		SearchResult issues = jiraRestClient.getSearchClient().searchJql("issue = " + id).claim();
-		if (issues.getTotal() > 0) {
+		SearchResult issues;
+		try {
+			issues = jiraRestClient.getSearchClient().searchJql("issue = " + id).claim();
+		} catch (Exception e) {
+			throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, e.getMessage());
+		}
+		if (issues != null && issues.getTotal() > 0) {
 			Issue issue = jiraRestClient.getIssueClient().getIssue(id).claim();
 			return JIRATicketUtils.toTicket(issue,
 					CloudJiraProperties.URL.getParam(details)
@@ -90,6 +95,7 @@ public class GetIssueCommand implements CommonPluginCommand<Ticket> {
 		} else {
 			throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Ticket with id {} is not found", id);
 		}
+
 	}
 
 	@Override
