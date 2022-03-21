@@ -1,27 +1,19 @@
-import { ExamplePluginTab } from 'components/examplePluginTab';
-import { IntegrationFormFields } from './components/integrationFormFields';
-import { IntegrationSettings } from './components/integrationSettings';
+import { IntegrationFormFields, IntegrationSettings } from 'components';
 
 window.RP.registerPlugin({
-  name: 'example',
+  name: 'JIRA Cloud',
   extensions: [
     {
-      name: 'integrationSettings',
-      title: 'Example plugin settings',
-      type: 'uiExtension:integrationSettings',
-      component: IntegrationSettings,
-    },
-    {
       name: 'integrationFormFields',
-      title: 'Example plugin fields',
+      title: 'JIRA Cloud plugin fields',
       type: 'uiExtension:integrationFormFields',
       component: IntegrationFormFields,
     },
     {
-      name: 'example',
-      title: 'Example plugin',
-      type: 'uiExtension:settingsTab',
-      component: ExamplePluginTab,
+      name: 'integrationSettings',
+      title: 'JIRA Cloud plugin settings',
+      type: 'uiExtension:integrationSettings',
+      component: IntegrationSettings,
     },
   ],
 });

@@ -15,54 +15,46 @@
  */
 package com.epam.reportportal.extension.jira;
 
-import com.epam.reportportal.extension.PluginCommand;
-import com.epam.reportportal.extension.ReportPortalExtensionPoint;
+import com.epam.reportportal.extension.*;
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.reportportal.extension.event.PluginEvent;
 import com.epam.reportportal.extension.event.StartLaunchEvent;
+import com.epam.reportportal.extension.jira.command.*;
 import com.epam.reportportal.extension.jira.command.binary.GetFileCommand;
-import com.epam.reportportal.extension.jira.command.entity.CreateEntityCommand;
-import com.epam.reportportal.extension.jira.command.entity.DeleteEntityCommand;
-import com.epam.reportportal.extension.jira.command.utils.RequestEntityConverter;
-import com.epam.reportportal.extension.jira.dao.EntityRepository;
-import com.epam.reportportal.extension.jira.dao.impl.EntityRepositoryImpl;
+import com.epam.reportportal.extension.jira.command.connection.TestConnectionCommand;
+import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
+import com.epam.reportportal.extension.jira.command.utils.JIRATicketDescriptionService;
 import com.epam.reportportal.extension.jira.event.launch.StartLaunchEventListener;
-import com.epam.reportportal.extension.jira.event.plugin.PluginEventListener;
 import com.epam.reportportal.extension.jira.event.plugin.PluginEventHandlerFactory;
+import com.epam.reportportal.extension.jira.event.plugin.PluginEventListener;
 import com.epam.reportportal.extension.jira.info.impl.PluginInfoProviderImpl;
-import com.epam.reportportal.extension.jira.service.EntityService;
 import com.epam.reportportal.extension.jira.utils.MemoizingSupplier;
-import com.epam.ta.reportportal.dao.IntegrationRepository;
-import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
-import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.reportportal.extension.util.RequestEntityConverter;
+import com.epam.ta.reportportal.binary.DataStoreService;
+import com.epam.ta.reportportal.dao.*;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.jasypt.util.text.BasicTextEncryptor;
 import org.jooq.DSLContext;
 import org.pf4j.Extension;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
 import javax.annotation.PostConstruct;
-import javax.sql.DataSource;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -72,13 +64,12 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 
 	public static final String BINARY_DATA_PROPERTIES_FILE_ID = "binary-data.properties";
 
-	public static final String SCHEMA_SCRIPTS_DIR = "schema";
-
-	private static final String PLUGIN_ID = "cloud-jira";
+	private static final String PLUGIN_ID = "JIRA Cloud";
 
 	private final String resourcesDir;
 
 	private final Supplier<Map<String, PluginCommand<?>>> pluginCommandMapping = new MemoizingSupplier<>(this::getCommands);
+	private final Supplier<Map<String, CommonPluginCommand<?>>> commonPluginCommandMapping = new MemoizingSupplier<>(this::getCommonCommands);
 
 	private final ObjectMapper objectMapper;
 	private final RequestEntityConverter requestEntityConverter;
@@ -86,15 +77,12 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 	private final Supplier<ApplicationListener<PluginEvent>> pluginLoadedListenerSupplier;
 	private final Supplier<ApplicationListener<StartLaunchEvent>> startLaunchEventListenerSupplier;
 
-	private final Supplier<EntityRepository> entityRepositorySupplier;
+	private final Supplier<CloudJiraClientProvider> cloudJiraClientProviderSupplier;
 
-	private final Supplier<EntityService> entityServiceSupplier;
+	private final Supplier<JIRATicketDescriptionService> jiraTicketDescriptionServiceSupplier;
 
 	@Autowired
 	private ApplicationContext applicationContext;
-
-	@Autowired
-	private DataSource dataSource;
 
 	@Autowired
 	private DSLContext dsl;
@@ -106,28 +94,45 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 	private IntegrationRepository integrationRepository;
 
 	@Autowired
+	private TicketRepository ticketRepository;
+
+	@Autowired
 	private ProjectRepository projectRepository;
 
 	@Autowired
 	private LaunchRepository launchRepository;
 
+	@Autowired
+	private LogRepository logRepository;
+
+	@Autowired
+	private TestItemRepository testItemRepository;
+
+	@Autowired
+	private BasicTextEncryptor textEncryptor;
+
+	@Autowired
+	@Qualifier("attachmentDataStoreService")
+	private DataStoreService dataStoreService;
+
 	public CloudJiraExtension(Map<String, Object> initParams) {
 		resourcesDir = IntegrationTypeProperties.RESOURCES_DIRECTORY.getValue(initParams).map(String::valueOf).orElse("");
 		objectMapper = configureObjectMapper();
 
-		pluginLoadedListenerSupplier = new MemoizingSupplier<>(() -> new PluginEventListener(PLUGIN_ID,
-				new PluginEventHandlerFactory(integrationTypeRepository,
-						integrationRepository,
-						new PluginInfoProviderImpl(resourcesDir, BINARY_DATA_PROPERTIES_FILE_ID)
-				)
-		));
+		pluginLoadedListenerSupplier = new MemoizingSupplier<>(() -> new PluginEventListener(PLUGIN_ID, new PluginEventHandlerFactory(
+				integrationTypeRepository,
+				integrationRepository,
+				new PluginInfoProviderImpl(resourcesDir, BINARY_DATA_PROPERTIES_FILE_ID)
+		)));
 		startLaunchEventListenerSupplier = new MemoizingSupplier<>(() -> new StartLaunchEventListener(launchRepository));
 
 		requestEntityConverter = new RequestEntityConverter(objectMapper);
 
-		entityRepositorySupplier = new MemoizingSupplier<>(() -> new EntityRepositoryImpl(dsl));
+		cloudJiraClientProviderSupplier = new MemoizingSupplier<>(() -> new CloudJiraClientProvider(textEncryptor));
 
-		entityServiceSupplier = new MemoizingSupplier<>(() -> new EntityService(entityRepositorySupplier.get()));
+		jiraTicketDescriptionServiceSupplier = new MemoizingSupplier<>(() -> new JIRATicketDescriptionService(logRepository,
+				testItemRepository
+		));
 	}
 
 	protected ObjectMapper configureObjectMapper() {
@@ -143,18 +148,28 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 	public Map<String, ?> getPluginParams() {
 		Map<String, Object> params = new HashMap<>();
 		params.put(ALLOWED_COMMANDS, new ArrayList<>(pluginCommandMapping.get().keySet()));
+		params.put(COMMON_COMMANDS, new ArrayList<>(commonPluginCommandMapping.get().keySet()));
 		return params;
 	}
 
 	@Override
-	public PluginCommand<?> getCommandToExecute(String commandName) {
+	public PluginCommand<?> getIntegrationCommand(String commandName) {
 		return pluginCommandMapping.get().get(commandName);
+	}
+
+	@Override
+	public CommonPluginCommand<?> getCommonCommand(String commandName) {
+		return commonPluginCommandMapping.get().get(commandName);
+	}
+
+	@Override
+	public IntegrationGroupEnum getIntegrationGroup() {
+		return IntegrationGroupEnum.BTS;
 	}
 
 	@PostConstruct
 	public void createIntegration() {
 		initListeners();
-//		initSchema();
 	}
 
 	private void initListeners() {
@@ -163,14 +178,6 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 		);
 		applicationEventMulticaster.addApplicationListener(pluginLoadedListenerSupplier.get());
 		applicationEventMulticaster.addApplicationListener(startLaunchEventListenerSupplier.get());
-	}
-
-	private void initSchema() throws IOException {
-		try (Stream<Path> paths = Files.list(Paths.get(resourcesDir, SCHEMA_SCRIPTS_DIR))) {
-			FileSystemResource[] scriptResources = paths.sorted().map(FileSystemResource::new).toArray(FileSystemResource[]::new);
-			ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator(scriptResources);
-			resourceDatabasePopulator.execute(dataSource);
-		}
 	}
 
 	@Override
@@ -186,14 +193,28 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 		applicationEventMulticaster.removeApplicationListener(startLaunchEventListenerSupplier.get());
 	}
 
+	private Map<String, CommonPluginCommand<?>> getCommonCommands() {
+		List<CommonPluginCommand<?>> commands = new ArrayList<>();
+		commands.add(new RetrieveCreationParamsCommand(textEncryptor));
+		commands.add(new RetrieveUpdateParamsCommand(textEncryptor));
+		commands.add(new GetFileCommand(resourcesDir, BINARY_DATA_PROPERTIES_FILE_ID));
+		commands.add(new GetIssueCommand(ticketRepository, integrationRepository, cloudJiraClientProviderSupplier.get()));
+		return commands.stream().collect(Collectors.toMap(NamedPluginCommand::getName, it -> it));
+	}
+
 	private Map<String, PluginCommand<?>> getCommands() {
-		Map<String, PluginCommand<?>> pluginCommandMapping = new HashMap<>();
-		pluginCommandMapping.put("getFile", new GetFileCommand(resourcesDir, BINARY_DATA_PROPERTIES_FILE_ID));
-		pluginCommandMapping.put("createEntity",
-				new CreateEntityCommand(projectRepository, requestEntityConverter, entityServiceSupplier.get())
-		);
-		pluginCommandMapping.put("deleteEntity", new DeleteEntityCommand(projectRepository, entityServiceSupplier.get()));
-		pluginCommandMapping.put("testConnection", (integration, params) -> true);
-		return pluginCommandMapping;
+		List<PluginCommand<?>> commands = new ArrayList<>();
+		commands.add(new TestConnectionCommand(cloudJiraClientProviderSupplier.get()));
+		commands.add(new GetIssueFieldsCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
+//		commands.add(new GetFileCommand(resourcesDir, BINARY_DATA_PROPERTIES_FILE_ID));
+		commands.add(new GetIssueTypesCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
+		commands.add(new PostTicketCommand(projectRepository,
+				requestEntityConverter,
+				cloudJiraClientProviderSupplier.get(),
+				jiraTicketDescriptionServiceSupplier.get(),
+				dataStoreService
+		));
+		return commands.stream().collect(Collectors.toMap(NamedPluginCommand::getName, it -> it));
+
 	}
 }

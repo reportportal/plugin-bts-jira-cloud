@@ -40,13 +40,14 @@ public class PluginInfoProviderImpl implements PluginInfoProvider {
 	private static final String METADATA_KEY = "metadata";
 
 	private static final String PLUGIN_DESCRIPTION =
-			"Cloud jira plugin";
+	        "Integration with Jira Cloud, can be required for projects that collect defects in a separate tracking tool."
+                + " The integration provides an exchange of information between ReportPortal and Jira Cloud, such as posting issues and linking issues, getting updates on their statuses.";
+
 	public static final Map<String, Object> PLUGIN_METADATA = new HashMap<>();
 	static {
         PLUGIN_METADATA.put("embedded", true);
         PLUGIN_METADATA.put("multiple", true);
     }
-
 
 	private final String resourcesDir;
 	private final String propertyFile;
