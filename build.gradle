@@ -18,14 +18,24 @@ repositories {
     maven { url "https://packages.atlassian.com/maven/repository/public" }
     mavenCentral()
     mavenLocal()
-    if (!releaseMode) {
+    if (releaseMode) {
+        dependencyRepos.forEach { path ->
+            maven {
+                setUrl("https://maven.pkg.github.com/reportportal/${path}")
+                credentials {
+                    username = findProperty("githubUserName")
+                    password = findProperty("githubToken")
+                }
+            }
+        }
+    } else {
         maven { url 'https://jitpack.io' }
     }
 }
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.0.0' : 'com.github.reportportal:commons-bom:c33bda7')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.7.0' : 'com.github.reportportal:commons-bom:5.7.0')
     }
 }
 
