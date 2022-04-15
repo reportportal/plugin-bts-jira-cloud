@@ -10,9 +10,13 @@ plugins {
     id 'nu.studer.jooq' version '3.0.3'
 }
 
+def scriptsUrl = 'https://raw.githubusercontent.com/reportportal/gradle-scripts/' +
+        (releaseMode ? getProperty('scripts.version') : 'develop')
+
 apply from: 'project-properties.gradle'
 apply from: 'jooq.gradle'
 apply from: 'ui.gradle'
+apply from: scriptsUrl + '/release-fat.gradle'
 
 repositories {
     maven { url "https://packages.atlassian.com/maven/repository/public" }
