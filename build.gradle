@@ -9,10 +9,11 @@ plugins {
     id 'nu.studer.jooq' version '3.0.3'
 }
 
+apply from: 'project-properties.gradle'
+
 def scriptsUrl = 'https://raw.githubusercontent.com/reportportal/gradle-scripts/' +
         (releaseMode ? getProperty('scripts.version') : 'develop')
 
-apply from: 'project-properties.gradle'
 apply from: 'jooq.gradle'
 apply from: 'ui.gradle'
 apply from: scriptsUrl + '/release-fat.gradle'
