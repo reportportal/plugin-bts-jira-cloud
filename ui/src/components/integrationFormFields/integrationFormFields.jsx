@@ -23,19 +23,15 @@ export const IntegrationFormFields = (props) => {
         label={LABELS.INTEGRATION_NAME}
         validate={btsIntegrationName}
         disabled={disabled}
+        isRequired
       >
         <FieldErrorHint provideHint={false}>
-          <FieldText
-            maxLength={55}
-            defaultWidth={false}
-            isRequired
-            placeholder={LABELS.INTEGRATION_NAME}
-          />
+          <FieldText maxLength={55} defaultWidth={false} />
         </FieldErrorHint>
       </FieldElement>
-      <FieldElement name="url" label={LABELS.URL} validate={btsUrl} disabled={disabled}>
+      <FieldElement name="url" label={LABELS.URL} validate={btsUrl} disabled={disabled} isRequired>
         <FieldErrorHint provideHint={false}>
-          <FieldText defaultWidth={false} isRequired placeholder={LABELS.URL} />
+          <FieldText defaultWidth={false} />
         </FieldErrorHint>
       </FieldElement>
       <FieldElement
@@ -43,14 +39,21 @@ export const IntegrationFormFields = (props) => {
         label={LABELS.PROJECT}
         validate={btsProjectKey}
         disabled={disabled}
+        isRequired
       >
         <FieldErrorHint provideHint={false}>
-          <FieldText maxLength={55} defaultWidth={false} isRequired placeholder={LABELS.PROJECT} />
+          <FieldText maxLength={55} defaultWidth={false} />
         </FieldErrorHint>
       </FieldElement>
-      <FieldElement name="email" label={LABELS.EMAIl} validate={email} disabled={disabled}>
+      <FieldElement
+        name="email"
+        label={LABELS.EMAIl}
+        validate={email}
+        disabled={disabled}
+        isRequired
+      >
         <FieldErrorHint provideHint={false}>
-          <FieldText defaultWidth={false} isRequired placeholder={LABELS.EMAIl} />
+          <FieldText defaultWidth={false} />
         </FieldErrorHint>
       </FieldElement>
       <FieldElement
@@ -58,9 +61,10 @@ export const IntegrationFormFields = (props) => {
         label={LABELS.TOKEN}
         disabled={disabled}
         validate={requiredField}
+        isRequired
       >
         <FieldErrorHint provideHint={false}>
-          <FieldTextFlex placeholder={LABELS.TOKEN} isRequired />
+          <FieldTextFlex />
         </FieldErrorHint>
       </FieldElement>
     </>
