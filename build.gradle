@@ -16,6 +16,7 @@ def scriptsUrl = 'https://raw.githubusercontent.com/reportportal/gradle-scripts/
 
 apply from: 'jooq.gradle'
 apply from: 'ui.gradle'
+apply from: scriptsUrl + '/signing.gradle'
 apply from: scriptsUrl + '/release-fat.gradle'
 
 repositories {
