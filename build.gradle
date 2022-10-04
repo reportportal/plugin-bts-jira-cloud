@@ -9,14 +9,6 @@ plugins {
     id 'nu.studer.jooq' version '3.0.3'
 }
 
-project.ext {
-    publishRepo = "https://maven.pkg.github.com/reportportal/plugin-bts-jira-cloud"
-    dependencyRepos = ["plugin-api", "commons-bom"]
-    releaseMode = project.hasProperty("releaseMode")
-    pluginID = "jira-cloud"
-    pluginsDir = "$buildDir/plugins"
-}
-
 apply from: 'project-properties.gradle'
 
 def scriptsUrl = 'https://raw.githubusercontent.com/reportportal/gradle-scripts/' +
@@ -24,8 +16,8 @@ def scriptsUrl = 'https://raw.githubusercontent.com/reportportal/gradle-scripts/
 
 apply from: 'jooq.gradle'
 apply from: 'ui.gradle'
-apply from: scriptsUrl + '/signing.gradle'
 apply from: scriptsUrl + '/release-fat.gradle'
+apply from: scriptsUrl + '/signing.gradle'
 
 repositories {
     maven { url "https://packages.atlassian.com/maven/repository/public" }
