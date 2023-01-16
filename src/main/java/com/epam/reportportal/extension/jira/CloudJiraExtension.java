@@ -213,7 +213,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 		commands.add(new GetIssueTypesCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
 		commands.add(new PostTicketCommand(projectRepository,
 				requestEntityConverter,
-				cloudJiraClientProviderSupplier.get(),
+				cloudJiraClientProviderExtendedSupplier.get(),
 				jiraTicketDescriptionServiceSupplier.get(),
 				dataStoreService
 		));
