@@ -29,7 +29,7 @@ import java.net.URI;
  */
 public class CloudJiraClientProvider {
 
-	private final BasicTextEncryptor textEncryptor;
+	protected final BasicTextEncryptor textEncryptor;
 
 	public CloudJiraClientProvider(BasicTextEncryptor textEncryptor) {
 		this.textEncryptor = textEncryptor;

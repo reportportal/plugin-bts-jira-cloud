@@ -20,6 +20,7 @@ import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.reportportal.extension.event.PluginEvent;
 import com.epam.reportportal.extension.event.StartLaunchEvent;
 import com.epam.reportportal.extension.jira.command.*;
+import com.epam.reportportal.extension.jira.command.atlassian.CloudJiraClientProviderExtended;
 import com.epam.reportportal.extension.jira.command.binary.GetFileCommand;
 import com.epam.reportportal.extension.jira.command.connection.TestConnectionCommand;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
@@ -78,6 +79,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 	private final Supplier<ApplicationListener<StartLaunchEvent>> startLaunchEventListenerSupplier;
 
 	private final Supplier<CloudJiraClientProvider> cloudJiraClientProviderSupplier;
+	private final Supplier<CloudJiraClientProvider> cloudJiraClientProviderExtendedSupplier;
 
 	private final Supplier<JIRATicketDescriptionService> jiraTicketDescriptionServiceSupplier;
 
@@ -129,6 +131,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 		requestEntityConverter = new RequestEntityConverter(objectMapper);
 
 		cloudJiraClientProviderSupplier = new MemoizingSupplier<>(() -> new CloudJiraClientProvider(textEncryptor));
+		cloudJiraClientProviderExtendedSupplier = new MemoizingSupplier<>(() -> new CloudJiraClientProviderExtended(textEncryptor));
 
 		jiraTicketDescriptionServiceSupplier = new MemoizingSupplier<>(() -> new JIRATicketDescriptionService(logRepository,
 				testItemRepository
@@ -205,12 +208,12 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 	private Map<String, PluginCommand<?>> getCommands() {
 		List<PluginCommand<?>> commands = new ArrayList<>();
 		commands.add(new TestConnectionCommand(cloudJiraClientProviderSupplier.get()));
-		commands.add(new GetIssueFieldsCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
+		commands.add(new GetIssueFieldsCommand(projectRepository, cloudJiraClientProviderExtendedSupplier.get()));
 //		commands.add(new GetFileCommand(resourcesDir, BINARY_DATA_PROPERTIES_FILE_ID));
 		commands.add(new GetIssueTypesCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
 		commands.add(new PostTicketCommand(projectRepository,
 				requestEntityConverter,
-				cloudJiraClientProviderSupplier.get(),
+				cloudJiraClientProviderExtendedSupplier.get(),
 				jiraTicketDescriptionServiceSupplier.get(),
 				dataStoreService
 		));
