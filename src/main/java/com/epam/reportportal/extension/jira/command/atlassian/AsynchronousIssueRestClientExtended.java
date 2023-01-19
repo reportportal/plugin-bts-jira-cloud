@@ -18,13 +18,16 @@ import java.net.URI;
  */
 public class AsynchronousIssueRestClientExtended extends AsynchronousIssueRestClient {
 
+	private final URI baseUri;
+
 	public AsynchronousIssueRestClientExtended(URI baseUri, HttpClient client, SessionRestClient sessionRestClient, MetadataRestClient metadataRestClient) {
 		super(baseUri, client, sessionRestClient, metadataRestClient);
+		this.baseUri = baseUri;
 	}
 
 	@Override
 	public Promise<Iterable<CimProject>> getCreateIssueMetadata(@Nullable GetCreateIssueMetadataOptions options) {
-		final UriBuilder uriBuilder = UriBuilder.fromUri(UriBuilder.fromUri("https://project-rp-integration.atlassian.net").path("/rest/api/latest").build()).path("issue/createmeta");
+		final UriBuilder uriBuilder = UriBuilder.fromUri(UriBuilder.fromUri(baseUri).build()).path("issue/createmeta");
 
 		if (options != null) {
 			if (options.projectIds != null) {
@@ -52,6 +55,6 @@ public class AsynchronousIssueRestClientExtended extends AsynchronousIssueRestCl
 			}
 		}
 
-		return getAndParse(uriBuilder.build(), new CreateIssueMetadataJsonParserEx());
+		return getAndParse(uriBuilder.build(), new CreateIssueMetadataJsonParserExtended());
 	}
 }
