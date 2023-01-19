@@ -11,8 +11,6 @@ import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import org.jasypt.util.text.BasicTextEncryptor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 

@@ -11,7 +11,7 @@ import org.codehaus.jettison.json.JSONObject;
 /**
  * Temporary solution, should be removed after jira-rest-java-client-core update.
  */
-public class CreateIssueMetadataJsonParserEx implements JsonObjectParser<Iterable<CimProject>> {
+public class CreateIssueMetadataJsonParserExtended implements JsonObjectParser<Iterable<CimProject>> {
 
 	private final GenericJsonArrayParser<CimProject> projectsParser = new GenericJsonArrayParser<CimProject>(new CimProjectJsonParser());
 
