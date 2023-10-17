@@ -1,15 +1,15 @@
-import { LABELS } from 'components/constans';
+import React, { useEffect } from 'react';
+import { LABELS } from '../constans';
 
 export const IntegrationFormFields = (props) => {
   const { initialize, disabled, initialData, updateMetaData, ...extensionProps } = props;
   const {
-    lib: { React },
     components: { FieldErrorHint, FieldElement, FieldText, FieldTextFlex },
     validators: { requiredField, btsUrl, btsProjectKey, btsIntegrationName, email },
     constants: { SECRET_FIELDS_KEY },
   } = extensionProps;
 
-  React.useEffect(() => {
+  useEffect(() => {
     initialize(initialData);
     updateMetaData({
       [SECRET_FIELDS_KEY]: ['apiToken'],
