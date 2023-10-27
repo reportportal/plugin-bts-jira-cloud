@@ -1,0 +1,17 @@
+{
+  "scope": "JIRA_Cloud",
+  "extensions": [
+    {
+      "name": "integrationFormFields",
+      "title": "JIRA Cloud plugin fields",
+      "type": "uiExtension:integrationFormFields",
+      "moduleName": "./integrationFormFields"
+    },
+    {
+      "name": "integrationSettings",
+      "title": "JIRA Cloud plugin settings",
+      "type": "uiExtension:integrationSettings",
+      "moduleName": "./integrationSettings"
+    }
+  ]
+}

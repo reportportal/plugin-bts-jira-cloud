@@ -1,21 +1,18 @@
-import { LABELS } from 'components/constans';
+import React from 'react';
+import { useDispatch } from 'react-redux';
+import { LABELS } from '../constans';
 
 export const IntegrationSettings = (props) => {
   const { data, goToPreviousPage, onUpdate, isGlobal, ...extensionProps } = props;
   const {
-    lib: { React, useDispatch },
     actions: { showModalAction, hideModalAction },
     components: {
       IntegrationSettings: IntegrationSettingsContainer,
       BtsAuthFieldsInfo,
       BtsPropertiesForIssueForm,
     },
-    utils: {
-      getDefectFormFields,
-    },
-    constants: {
-      BTS_FIELDS_FORM,
-    }
+    utils: { getDefectFormFields },
+    constants: { BTS_FIELDS_FORM },
   } = extensionProps;
 
   const dispatch = useDispatch();
@@ -53,8 +50,9 @@ export const IntegrationSettings = (props) => {
 
     dispatch(
       showModalAction({
-        id: 'addIntegrationModal',
+        id: 'createProjectIntegrationModal',
         data: {
+          modalTitle: 'Edit authorization',
           onConfirm: getConfirmationFunc(testConnection),
           instanceType: integrationType.name,
           customProps: {

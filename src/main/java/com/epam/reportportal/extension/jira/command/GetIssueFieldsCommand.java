@@ -83,6 +83,7 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
 
 			GetCreateIssueMetadataOptions options = new GetCreateIssueMetadataOptionsBuilder().withExpandedIssueTypesFields()
 					.withProjectKeys(jiraProject.getKey())
+					.withIssueTypeIds(List.of(issueType.get().getId()))
 					.build();
 			Iterable<CimProject> projects = client.getIssueClient().getCreateIssueMetadata(options).claim();
 			CimProject project = projects.iterator().next();

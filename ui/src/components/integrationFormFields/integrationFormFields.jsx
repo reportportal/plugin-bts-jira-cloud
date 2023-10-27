@@ -1,15 +1,15 @@
-import { LABELS } from 'components/constans';
+import React, { useEffect } from 'react';
+import { LABELS } from '../constans';
 
 export const IntegrationFormFields = (props) => {
-  const { initialize, disabled, lineAlign, initialData, updateMetaData, ...extensionProps } = props;
+  const { initialize, disabled, initialData, updateMetaData, ...extensionProps } = props;
   const {
-    lib: { React },
-    components: { IntegrationFormField, FieldErrorHint, Input, InputTextArea },
+    components: { FieldErrorHint, FieldElement, FieldText, FieldTextFlex },
     validators: { requiredField, btsUrl, btsProjectKey, btsIntegrationName, email },
     constants: { SECRET_FIELDS_KEY },
   } = extensionProps;
 
-  React.useEffect(() => {
+  useEffect(() => {
     initialize(initialData);
     updateMetaData({
       [SECRET_FIELDS_KEY]: ['apiToken'],
@@ -18,68 +18,55 @@ export const IntegrationFormFields = (props) => {
 
   return (
     <>
-      <IntegrationFormField
+      <FieldElement
         name="integrationName"
-        disabled={disabled}
         label={LABELS.INTEGRATION_NAME}
-        required
-        maxLength="55"
         validate={btsIntegrationName}
-        lineAlign={lineAlign}
-      >
-        <FieldErrorHint>
-          <Input mobileDisabled />
-        </FieldErrorHint>
-      </IntegrationFormField>
-      <IntegrationFormField
-        name="url"
         disabled={disabled}
-        label={LABELS.URL}
-        required
-        validate={btsUrl}
-        lineAlign={lineAlign}
+        isRequired
       >
-        <FieldErrorHint>
-          <Input mobileDisabled />
+        <FieldErrorHint provideHint={false}>
+          <FieldText maxLength={55} defaultWidth={false} />
         </FieldErrorHint>
-      </IntegrationFormField>
-      <IntegrationFormField
+      </FieldElement>
+      <FieldElement name="url" label={LABELS.URL} validate={btsUrl} disabled={disabled} isRequired>
+        <FieldErrorHint provideHint={false}>
+          <FieldText defaultWidth={false} />
+        </FieldErrorHint>
+      </FieldElement>
+      <FieldElement
         name="project"
-        disabled={disabled}
         label={LABELS.PROJECT}
-        required
-        maxLength="55"
         validate={btsProjectKey}
-        lineAlign={lineAlign}
-      >
-        <FieldErrorHint>
-          <Input mobileDisabled />
-        </FieldErrorHint>
-      </IntegrationFormField>
-      <IntegrationFormField
-        name="email"
         disabled={disabled}
-        label={LABELS.EMAIl}
-        required
-        lineAlign={lineAlign}
-        validate={email}
+        isRequired
       >
-        <FieldErrorHint>
-          <Input mobileDisabled />
+        <FieldErrorHint provideHint={false}>
+          <FieldText maxLength={55} defaultWidth={false} />
         </FieldErrorHint>
-      </IntegrationFormField>
-      <IntegrationFormField
+      </FieldElement>
+      <FieldElement
+        name="email"
+        label={LABELS.EMAIl}
+        validate={email}
+        disabled={disabled}
+        isRequired
+      >
+        <FieldErrorHint provideHint={false}>
+          <FieldText defaultWidth={false} />
+        </FieldErrorHint>
+      </FieldElement>
+      <FieldElement
         name="apiToken"
         label={LABELS.TOKEN}
-        required
         disabled={disabled}
-        lineAlign={lineAlign}
         validate={requiredField}
+        isRequired
       >
-        <FieldErrorHint>
-          <InputTextArea type="text" mobileDisabled />
+        <FieldErrorHint provideHint={false}>
+          <FieldTextFlex />
         </FieldErrorHint>
-      </IntegrationFormField>
+      </FieldElement>
     </>
   );
 };
