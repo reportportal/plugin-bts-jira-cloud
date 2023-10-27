@@ -30,8 +30,6 @@ import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.Optional;
@@ -41,7 +39,6 @@ import java.util.Optional;
  */
 public class GetIssueCommand implements CommonPluginCommand<Ticket> {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(GetIssueCommand.class);
 	private final String TICKET_ID = "ticketId";
 	private final String PROJECT_ID = "projectId";
 

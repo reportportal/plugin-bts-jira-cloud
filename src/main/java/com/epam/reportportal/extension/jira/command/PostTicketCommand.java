@@ -158,7 +158,7 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
 		} catch (ReportPortalException e) {
 			throw e;
 		} catch (Exception e) {
-			System.out.println(e.toString());
+			System.out.println(e.getMessage());
 			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, e.getMessage());
 		}
 	}

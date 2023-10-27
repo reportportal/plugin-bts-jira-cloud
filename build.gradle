@@ -17,6 +17,7 @@ def scriptsUrl = 'https://raw.githubusercontent.com/reportportal/gradle-scripts/
 apply from: 'jooq.gradle'
 apply from: 'ui.gradle'
 apply from: scriptsUrl + '/release-fat.gradle'
+apply from: scriptsUrl + '/signing.gradle'
 
 repositories {
     maven { url "https://packages.atlassian.com/maven/repository/public" }
@@ -126,6 +127,7 @@ jar {
 }
 
 shadowJar {
+    archiveClassifier.set(null)
     from("src/main/resources") {
         into("/resources")
     }
