@@ -1,14 +1,16 @@
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
+const ESLintWebpackPlugin = require('eslint-webpack-plugin');
 const ModuleFederationPlugin = require('webpack/lib/container/ModuleFederationPlugin');
 const pjson = require('./package.json');
 
 const config = {
   entry: ['./src/index.js'],
   output: {
-    path: path.resolve(__dirname, 'build/public'),
-    filename: 'main.js',
-    libraryTarget: 'umd',
+    path: path.resolve(__dirname, 'build/public'), // compile to 'build/public' to allow public access to plugin resources
+    filename: '[name].app.[contenthash:8].js',
+    publicPath: 'auto',
+    clean: true,
   },
   module: {
     rules: [
@@ -27,13 +29,14 @@ const config = {
     extensions: ['.js', '.jsx'],
     alias: {
       components: path.resolve(__dirname, 'src/components'),
-      constants: path.resolve(__dirname, 'src/constants'),
-      icons: path.resolve(__dirname, 'src/icons'),
-      hooks: path.resolve(__dirname, 'src/hooks'),
-      utils: path.resolve(__dirname, 'src/utils'),
     },
   },
   plugins: [
+    new ESLintWebpackPlugin({
+      context: './src',
+      extensions: ['.js', '.jsx'],
+      threads: true,
+    }),
     new ModuleFederationPlugin({
       name: 'JIRA_Cloud',
       filename: `remoteEntity.js`,
@@ -52,14 +55,6 @@ const config = {
         'react-redux': {
           singleton: true,
           requiredVersion: pjson.dependencies['react-redux'],
-        },
-        'redux-form': {
-          singleton: true,
-          requiredVersion: pjson.dependencies['redux-form'],
-        },
-        'react-tracking': {
-          singleton: true,
-          requiredVersion: pjson.dependencies['react-tracking'],
         },
       },
       exposes: {
