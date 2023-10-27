@@ -233,7 +233,6 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 		List<PluginCommand<?>> commands = new ArrayList<>();
 		commands.add(new TestConnectionCommand(cloudJiraClientProviderSupplier.get()));
 		commands.add(new GetIssueFieldsCommand(projectRepository, cloudJiraClientProviderExtendedSupplier.get()));
-//		commands.add(new GetFileCommand(resourcesDir, BINARY_DATA_PROPERTIES_FILE_ID));
 		commands.add(new GetIssueTypesCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
 		commands.add(new PostTicketCommand(projectRepository,
 				requestEntityConverter,
