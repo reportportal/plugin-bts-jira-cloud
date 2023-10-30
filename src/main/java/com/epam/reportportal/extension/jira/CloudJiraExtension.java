@@ -64,7 +64,7 @@ import java.util.stream.Collectors;
 public class CloudJiraExtension implements ReportPortalExtensionPoint, DisposableBean {
 
 	private static final String DOCUMENTATION_LINK_FIELD = "documentationLink";
-	private static final String DOCUMENTATION_LINK = "https://reportportal.io/docs/plugins/AtlassianJiraServer";
+	private static final String DOCUMENTATION_LINK = "https://reportportal.io/docs/plugins/AtlassianJiraCloud";
 	public static final String BINARY_DATA_PROPERTIES_FILE_ID = "binary-data.properties";
 
 	private static final String PLUGIN_ID = "JIRA Cloud";
