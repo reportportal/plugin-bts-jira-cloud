@@ -154,7 +154,8 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
 					continue;
 				}
 
-				result.add(new PostFormField(fieldID, fieldName, fieldType, issueField.isRequired(), defValue, allowed));
+				result.add(PostFormField.builder().id(fieldID).fieldName(fieldName).fieldType(fieldType)
+						.isRequired(issueField.isRequired()).value(defValue).definedValues(allowed).build());
 			}
 			return result;
 		} catch (Exception e) {

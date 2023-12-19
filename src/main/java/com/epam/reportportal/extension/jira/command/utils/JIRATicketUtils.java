@@ -87,7 +87,7 @@ public class JIRATicketUtils {
 		List<PostFormField> fields = ticketRQ.getFields();
 		for (PostFormField one : fields) {
 			CimFieldInfo cimFieldInfo = cimIssueType.getFields().get(one.getId());
-			if (one.getIsRequired() && CollectionUtils.isEmpty(one.getValue())) {
+			if (one.isRequired() && CollectionUtils.isEmpty(one.getValue())) {
 				BusinessRule.fail().withError(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
 						Suppliers.formattedSupplier("Required parameter '{}' is empty", one.getFieldName())
 				);
