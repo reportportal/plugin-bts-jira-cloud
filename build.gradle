@@ -30,7 +30,7 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.11.0' : 'com.epam.reportportal:commons-bom:5.11.0')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.11.2' : 'com.epam.reportportal:commons-bom:5.11.2')
     }
 }
 
