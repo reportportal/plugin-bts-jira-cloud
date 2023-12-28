@@ -25,14 +25,17 @@ import com.epam.ta.reportportal.exception.ReportPortalException;
 import com.epam.ta.reportportal.ws.model.ErrorType;
 
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.util.Optional.ofNullable;
-import static org.hibernate.bytecode.BytecodeLogger.LOGGER;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class TestConnectionCommand implements PluginCommand<Boolean> {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(TestConnectionCommand.class);
 
 	private final CloudJiraClientProvider cloudJiraClientProvider;
 
