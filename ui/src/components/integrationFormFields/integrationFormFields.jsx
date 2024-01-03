@@ -26,7 +26,7 @@ export const IntegrationFormFields = (props) => {
         isRequired
       >
         <FieldErrorHint provideHint={false}>
-          <FieldText maxLength={55} defaultWidth={false} />
+          <FieldText defaultWidth={false} />
         </FieldErrorHint>
       </FieldElement>
       <FieldElement name="url" label={LABELS.URL} validate={btsUrl} disabled={disabled} isRequired>
@@ -42,7 +42,7 @@ export const IntegrationFormFields = (props) => {
         isRequired
       >
         <FieldErrorHint provideHint={false}>
-          <FieldText maxLength={55} defaultWidth={false} />
+          <FieldText defaultWidth={false} />
         </FieldErrorHint>
       </FieldElement>
       <FieldElement
