@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { LABELS } from '../constans';
 
-// eslint-disable-next-line react/function-component-definition
 export const IntegrationFormFields = (props) => {
   const { initialize, disabled, initialData, updateMetaData, ...extensionProps } = props;
   const {
@@ -15,7 +14,7 @@ export const IntegrationFormFields = (props) => {
     updateMetaData({
       [SECRET_FIELDS_KEY]: ['apiToken'],
     });
-  }, [SECRET_FIELDS_KEY, initialData, initialize, updateMetaData]);
+  }, []);
 
   return (
     <>
