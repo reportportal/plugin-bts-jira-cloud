@@ -1,1 +1,5 @@
-export { IntegrationSettings } from './integrationSettings';
+import { IntegrationSettings } from './integrationSettings';
+
+export { IntegrationSettings };
+
+export default IntegrationSettings;
