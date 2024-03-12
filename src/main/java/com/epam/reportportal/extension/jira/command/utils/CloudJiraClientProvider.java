@@ -13,38 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.reportportal.extension.jira.command.utils;
 
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import org.jasypt.util.text.BasicTextEncryptor;
-
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import java.net.URI;
+import org.jasypt.util.text.BasicTextEncryptor;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class CloudJiraClientProvider {
 
-	protected final BasicTextEncryptor textEncryptor;
+  protected final BasicTextEncryptor textEncryptor;
 
-	public CloudJiraClientProvider(BasicTextEncryptor textEncryptor) {
-		this.textEncryptor = textEncryptor;
-	}
+  public CloudJiraClientProvider(BasicTextEncryptor textEncryptor) {
+    this.textEncryptor = textEncryptor;
+  }
 
-	public JiraRestClient get(IntegrationParams integrationParams) {
-		String providedUsername = CloudJiraProperties.EMAIL.getParam(integrationParams)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "User email is not specified."));
-		String credentials = textEncryptor.decrypt(CloudJiraProperties.API_TOKEN.getParam(integrationParams)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Api token is not specified.")));
-		String url = CloudJiraProperties.URL.getParam(integrationParams)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-						"Url to the Cloud Jira is not specified."
-				));
-		return new AsynchronousJiraRestClientFactory().createWithBasicHttpAuthentication(URI.create(url), providedUsername, credentials);
-	}
+  public JiraRestClient get(IntegrationParams integrationParams) {
+    String providedUsername = CloudJiraProperties.EMAIL.getParam(integrationParams).orElseThrow(
+        () -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+            "User email is not specified."
+        ));
+    String credentials = textEncryptor.decrypt(
+        CloudJiraProperties.API_TOKEN.getParam(integrationParams).orElseThrow(
+            () -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+                "Api token is not specified."
+            )));
+    String url = CloudJiraProperties.URL.getParam(integrationParams).orElseThrow(
+        () -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+            "Url to the Cloud Jira is not specified."
+        ));
+    return new AsynchronousJiraRestClientFactory().createWithBasicHttpAuthentication(
+        URI.create(url), providedUsername, credentials);
+  }
 
 }
