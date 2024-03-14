@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.reportportal.extension.jira.command;
 
 import com.atlassian.jira.rest.client.api.JiraRestClient;
@@ -24,8 +25,7 @@ import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-
+import com.epam.ta.reportportal.ws.reporting.ErrorType;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -36,32 +36,32 @@ import java.util.stream.StreamSupport;
  */
 public class GetIssueTypesCommand extends ProjectManagerCommand<List<String>> {
 
-	private final CloudJiraClientProvider cloudJiraClientProvider;
+  private final CloudJiraClientProvider cloudJiraClientProvider;
 
-	public GetIssueTypesCommand(ProjectRepository projectRepository, CloudJiraClientProvider cloudJiraClientProvider) {
-		super(projectRepository);
-		this.cloudJiraClientProvider = cloudJiraClientProvider;
-	}
+  public GetIssueTypesCommand(ProjectRepository projectRepository,
+      CloudJiraClientProvider cloudJiraClientProvider) {
+    super(projectRepository);
+    this.cloudJiraClientProvider = cloudJiraClientProvider;
+  }
 
-	@Override
-	public String getName() {
-		return "getIssueTypes";
-	}
+  @Override
+  public String getName() {
+    return "getIssueTypes";
+  }
 
-	@Override
-	protected List<String> invokeCommand(Integration integration, Map<String, Object> params) {
-		try (JiraRestClient client = cloudJiraClientProvider.get(integration.getParams())) {
-			Project jiraProject = client.getProjectClient()
-					.getProject(CloudJiraProperties.PROJECT.getParam(integration.getParams())
-							.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-									"Project is not specified."
-							)))
-					.claim();
-			return StreamSupport.stream(jiraProject.getIssueTypes().spliterator(), false)
-					.map(IssueType::getName)
-					.collect(Collectors.toList());
-		} catch (Exception e) {
-			throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Check connection settings.");
-		}
-	}
+  @Override
+  protected List<String> invokeCommand(Integration integration, Map<String, Object> params) {
+    try (JiraRestClient client = cloudJiraClientProvider.get(integration.getParams())) {
+      Project jiraProject = client.getProjectClient().getProject(
+          CloudJiraProperties.PROJECT.getParam(integration.getParams()).orElseThrow(
+              () -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+                  "Project is not specified."
+              ))).claim();
+      return StreamSupport.stream(jiraProject.getIssueTypes().spliterator(), false)
+          .map(IssueType::getName).collect(Collectors.toList());
+    } catch (Exception e) {
+      throw new ReportPortalException(
+          ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Check connection settings.");
+    }
+  }
 }
