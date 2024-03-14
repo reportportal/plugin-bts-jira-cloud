@@ -21,26 +21,16 @@ apply from: scriptsUrl + '/signing.gradle'
 
 repositories {
     maven { url "https://packages.atlassian.com/maven/repository/public" }
-    mavenCentral()
-    mavenLocal()
-    if (releaseMode) {
-        dependencyRepos.forEach { path ->
-            maven {
-                setUrl("https://maven.pkg.github.com/reportportal/${path}")
-                credentials {
-                    username = findProperty("githubUserName")
-                    password = findProperty("githubToken")
-                }
-            }
-        }
-    } else {
+    mavenCentral { url "https://repo1.maven.org/maven2" }
+
+    if (!releaseMode) {
         maven { url 'https://jitpack.io' }
     }
 }
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.7.0' : 'com.github.reportportal:commons-bom:04b1a7d')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.11.2' : 'com.epam.reportportal:commons-bom:5.11.2')
     }
 }
 
@@ -52,9 +42,6 @@ dependencies {
         implementation 'com.github.reportportal:plugin-api:cc3c5c8e'
         annotationProcessor 'com.github.reportportal:plugin-api:cc3c5c8e'
     }
-
-//    implementation group: 'org.glassfish', name: 'javax.el', version: '3.0.0'
-//    implementation 'org.springframework.boot:spring-boot-starter-web'
 
     implementation group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.1'
     implementation group: 'org.jooq', name: 'jooq', version: '3.14.4'
