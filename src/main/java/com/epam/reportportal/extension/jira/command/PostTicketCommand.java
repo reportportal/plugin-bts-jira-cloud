@@ -17,13 +17,13 @@
 package com.epam.reportportal.extension.jira.command;
 
 import static com.epam.reportportal.extension.util.CommandParamUtils.ENTITY_PARAM;
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.reportportal.rules.exception.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
 import static com.epam.ta.reportportal.commons.Predicates.equalTo;
 import static com.epam.ta.reportportal.commons.Predicates.in;
 import static com.epam.ta.reportportal.commons.Predicates.isNull;
 import static com.epam.ta.reportportal.commons.Predicates.not;
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.ta.reportportal.ws.reporting.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
 import static java.util.stream.Collectors.toSet;
 
 import com.atlassian.jira.rest.client.api.JiraRestClient;
@@ -43,15 +43,15 @@ import com.epam.reportportal.extension.jira.command.utils.JIRATicketDescriptionS
 import com.epam.reportportal.extension.jira.command.utils.JIRATicketUtils;
 import com.epam.reportportal.extension.util.RequestEntityConverter;
 import com.epam.reportportal.extension.util.RequestEntityValidator;
+import com.epam.reportportal.model.externalsystem.PostFormField;
+import com.epam.reportportal.model.externalsystem.PostTicketRQ;
+import com.epam.reportportal.model.externalsystem.Ticket;
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
-import com.epam.ta.reportportal.ws.model.externalsystem.PostTicketRQ;
-import com.epam.ta.reportportal.ws.model.externalsystem.Ticket;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;

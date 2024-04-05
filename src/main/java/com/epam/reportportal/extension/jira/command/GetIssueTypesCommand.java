@@ -24,8 +24,8 @@ import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvide
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
