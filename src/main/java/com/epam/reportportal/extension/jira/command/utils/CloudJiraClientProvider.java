@@ -19,8 +19,8 @@ package com.epam.reportportal.extension.jira.command.utils;
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.reporting.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ErrorType;
 import java.net.URI;
 import org.jasypt.util.text.BasicTextEncryptor;
 
