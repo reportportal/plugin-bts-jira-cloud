@@ -29,6 +29,7 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.reportportal.rules.exception.ErrorType;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
 import org.apache.commons.collections.CollectionUtils;
@@ -152,7 +153,8 @@ public class JIRATicketDescriptionService {
   private String getFormattedMessage(Log log) {
     StringBuilder messageBuilder = new StringBuilder();
     ofNullable(log.getLogTime()).ifPresent(logTime -> messageBuilder.append(" Time: ")
-        .append(dateFormat.format(TO_DATE.apply(logTime))).append(", "));
+        .append(dateFormat.format(
+            TO_DATE.apply(logTime.atOffset(ZoneOffset.UTC).toLocalDateTime()))).append(", "));
     ofNullable(log.getLogLevel()).ifPresent(
         logLevel -> messageBuilder.append("Level: ").append(logLevel).append(", "));
     messageBuilder.append("Log: ").append(log.getLogMessage()).append("\n");
