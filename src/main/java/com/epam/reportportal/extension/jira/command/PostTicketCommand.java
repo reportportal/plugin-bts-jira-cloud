@@ -35,6 +35,7 @@ import com.atlassian.jira.rest.client.api.domain.IssueType;
 import com.atlassian.jira.rest.client.api.domain.Project;
 import com.atlassian.jira.rest.client.api.domain.SearchResult;
 import com.atlassian.jira.rest.client.api.domain.input.AttachmentInput;
+import com.atlassian.jira.rest.client.api.domain.input.FieldInput;
 import com.atlassian.jira.rest.client.api.domain.input.IssueInput;
 import com.atlassian.jira.rest.client.api.domain.input.LinkIssuesInput;
 import com.epam.reportportal.extension.ProjectMemberCommand;
@@ -107,7 +108,7 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
     // ticket type and/or components in JIRA.
     PostFormField issueType = new PostFormField();
     PostFormField components = new PostFormField();
-    PostFormField linkedIssue = new PostFormField();
+    PostFormField linkedIssue = null;
     for (PostFormField object : fields) {
       if ("issuetype".equalsIgnoreCase(object.getId())) {
         issueType = object;
@@ -184,7 +185,10 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
             .addAttachments(issue.getAttachmentsUri(), Arrays.copyOf(attachmentInputs, counter))
             .claim();
       }
-      linkIssues(client, issue);
+      if (linkedIssue != null) {
+        linkIssues(client, issue, linkedIssue);
+      }
+
       return getTicket(createdIssue.getKey(), integration.getParams(), client).orElse(null);
 
     } catch (ReportPortalException e) {
@@ -244,9 +248,15 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
     return jiraRestClient.getSearchClient().searchJql("issue = " + id).claim();
   }
 
-  private void linkIssues(JiraRestClient jiraRestClient, Issue issue) {
+  private void linkIssues(JiraRestClient jiraRestClient, Issue issue, PostFormField field) {
     LOGGER.error("linkIssues: " + issue);
-    LinkIssuesInput linkIssuesInput = new LinkIssuesInput(issue.getKey(), "EPMRPP-49", "Duplicate");
-    jiraRestClient.getIssueClient().linkIssue(linkIssuesInput).claim();
+    LOGGER.error("FieldInput: " + field);
+    String value = field.getValue().get(0);
+    String[] s = value.split(" ");
+    for (String v: s) {
+      LOGGER.error("Field value: " + v);
+      LinkIssuesInput linkIssuesInput = new LinkIssuesInput(issue.getKey(), v, "Relates");
+      jiraRestClient.getIssueClient().linkIssue(linkIssuesInput).claim();
+    }
   }
 }
