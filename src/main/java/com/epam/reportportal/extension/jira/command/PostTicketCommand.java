@@ -35,11 +35,9 @@ import com.atlassian.jira.rest.client.api.domain.IssueType;
 import com.atlassian.jira.rest.client.api.domain.Project;
 import com.atlassian.jira.rest.client.api.domain.SearchResult;
 import com.atlassian.jira.rest.client.api.domain.input.AttachmentInput;
-import com.atlassian.jira.rest.client.api.domain.input.FieldInput;
 import com.atlassian.jira.rest.client.api.domain.input.IssueInput;
 import com.atlassian.jira.rest.client.api.domain.input.LinkIssuesInput;
 import com.epam.reportportal.extension.ProjectMemberCommand;
-import com.epam.reportportal.extension.jira.command.connection.TestConnectionCommand;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
 import com.epam.reportportal.extension.jira.command.utils.JIRATicketDescriptionService;
@@ -49,12 +47,12 @@ import com.epam.reportportal.extension.util.RequestEntityValidator;
 import com.epam.reportportal.model.externalsystem.PostFormField;
 import com.epam.reportportal.model.externalsystem.PostTicketRQ;
 import com.epam.reportportal.model.externalsystem.Ticket;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -65,15 +63,12 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.StreamSupport;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(PostTicketCommand.class);
 
   private final RequestEntityConverter requestEntityConverter;
 
@@ -82,6 +77,8 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
   private final JIRATicketDescriptionService descriptionService;
 
   private final DataStoreService dataStoreService;
+
+  private static final String LINKED_ISSUE_TYPE = "Relates";
 
   public PostTicketCommand(ProjectRepository projectRepository,
       RequestEntityConverter requestEntityConverter,
@@ -249,14 +246,13 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
   }
 
   private void linkIssues(JiraRestClient jiraRestClient, Issue issue, PostFormField field) {
-    LOGGER.error("linkIssues: " + issue);
-    LOGGER.error("FieldInput: " + field);
     String value = field.getValue().get(0);
-    String[] s = value.split(" ");
-    for (String v: s) {
-      LOGGER.error("Field value: " + v);
-      LinkIssuesInput linkIssuesInput = new LinkIssuesInput(issue.getKey(), v, "Relates");
-      jiraRestClient.getIssueClient().linkIssue(linkIssuesInput).claim();
+    if (StringUtils.isNotEmpty(value)) {
+      String[] s = value.split(" ");
+      for (String v : s) {
+        LinkIssuesInput linkIssuesInput = new LinkIssuesInput(issue.getKey(), v, LINKED_ISSUE_TYPE);
+        jiraRestClient.getIssueClient().linkIssue(linkIssuesInput).claim();
+      }
     }
   }
 }
