@@ -36,6 +36,7 @@ import com.atlassian.jira.rest.client.api.domain.Project;
 import com.atlassian.jira.rest.client.api.domain.SearchResult;
 import com.atlassian.jira.rest.client.api.domain.input.AttachmentInput;
 import com.atlassian.jira.rest.client.api.domain.input.IssueInput;
+import com.atlassian.jira.rest.client.api.domain.input.LinkIssuesInput;
 import com.epam.reportportal.extension.ProjectMemberCommand;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
@@ -46,12 +47,12 @@ import com.epam.reportportal.extension.util.RequestEntityValidator;
 import com.epam.reportportal.model.externalsystem.PostFormField;
 import com.epam.reportportal.model.externalsystem.PostTicketRQ;
 import com.epam.reportportal.model.externalsystem.Ticket;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -62,6 +63,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.StreamSupport;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -75,6 +77,8 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
   private final JIRATicketDescriptionService descriptionService;
 
   private final DataStoreService dataStoreService;
+
+  private static final String LINKED_ISSUE_TYPE = "Relates";
 
   public PostTicketCommand(ProjectRepository projectRepository,
       RequestEntityConverter requestEntityConverter,
@@ -101,12 +105,16 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
     // ticket type and/or components in JIRA.
     PostFormField issueType = new PostFormField();
     PostFormField components = new PostFormField();
+    PostFormField linkedIssue = null;
     for (PostFormField object : fields) {
       if ("issuetype".equalsIgnoreCase(object.getId())) {
         issueType = object;
       }
       if ("components".equalsIgnoreCase(object.getId())) {
         components = object;
+      }
+      if ("issuelinks".equalsIgnoreCase(object.getId())) {
+        linkedIssue = object;
       }
     }
 
@@ -174,6 +182,10 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
             .addAttachments(issue.getAttachmentsUri(), Arrays.copyOf(attachmentInputs, counter))
             .claim();
       }
+      if (linkedIssue != null) {
+        linkIssues(client, issue, linkedIssue);
+      }
+
       return getTicket(createdIssue.getKey(), integration.getParams(), client).orElse(null);
 
     } catch (ReportPortalException e) {
@@ -231,5 +243,16 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
 
   private SearchResult findIssue(String id, JiraRestClient jiraRestClient) {
     return jiraRestClient.getSearchClient().searchJql("issue = " + id).claim();
+  }
+
+  private void linkIssues(JiraRestClient jiraRestClient, Issue issue, PostFormField field) {
+    String value = field.getValue().get(0);
+    if (StringUtils.isNotEmpty(value)) {
+      String[] s = value.split(" ");
+      for (String v : s) {
+        LinkIssuesInput linkIssuesInput = new LinkIssuesInput(issue.getKey(), v, LINKED_ISSUE_TYPE);
+        jiraRestClient.getIssueClient().linkIssue(linkIssuesInput).claim();
+      }
+    }
   }
 }
