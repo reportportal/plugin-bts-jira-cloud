@@ -63,6 +63,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.StreamSupport;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -246,7 +247,7 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
   }
 
   private void linkIssues(JiraRestClient jiraRestClient, Issue issue, PostFormField field) {
-    String value = field.getValue().get(0);
+    String value = CollectionUtils.isNotEmpty(field.getValue()) ? field.getValue().get(0) : "";
     if (StringUtils.isNotEmpty(value)) {
       String[] s = value.split(" ");
       for (String v : s) {
