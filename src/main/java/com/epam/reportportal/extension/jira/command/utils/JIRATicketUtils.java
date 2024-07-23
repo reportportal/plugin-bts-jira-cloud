@@ -137,6 +137,9 @@ public class JIRATicketUtils {
 				issueInputBuilder.setFixVersionsNames(one.getValue());
 				continue;
 			}
+			if (one.getId().equalsIgnoreCase(IssueFieldId.LINKS_FIELD.id)) {
+				continue;
+			}
 
 			// Arrays and fields with 'allowedValues' handler
 			if (null != cimFieldInfo.getAllowedValues()) {
