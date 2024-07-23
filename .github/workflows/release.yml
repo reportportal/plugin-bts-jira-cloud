@@ -35,11 +35,11 @@ jobs:
         with:
           name: 'reportportal.io'
           email: 'support@reportportal.io'
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
 
       - name: Release with Gradle
         id: release
         run: |
           ./gradlew release -PreleaseMode -Pscripts.version=${{env.SCRIPTS_VERSION}} -Pbom.version=${{env.BOM_VERSION}} \
-          -PgithubUserName=${{env.GH_USER_NAME}} -PgithubToken=${{secrets.GITHUB_TOKEN}} \
+          -PgithubUserName=${{env.GH_TOKEN_NEW}} -PgithubToken=${{secrets.GH_TOKEN}} \
           -PgpgPassphrase=${{secrets.GPG_PASSPHRASE}} -PgpgPrivateKey="${{secrets.GPG_PRIVATE_KEY}}"
