@@ -94,6 +94,7 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
 				// Field ID for next JIRA POST ticket requests
 				String fieldID = issueField.getId();
 				String fieldType = issueField.getSchema().getType();
+				boolean isRequired = issueField.isRequired();
 				List<AllowedValue> allowed = new ArrayList<>();
 
 				// Provide values for custom fields with predefined options
@@ -134,6 +135,7 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
 					}
 				}
 				if (fieldID.equalsIgnoreCase(IssueFieldId.ISSUE_TYPE_FIELD.id)) {
+					isRequired = true;
 					defValue = Collections.singletonList(issueTypeParam);
 				}
 				if (fieldID.equalsIgnoreCase(IssueFieldId.ASSIGNEE_FIELD.id)) {
@@ -154,7 +156,7 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
 					continue;
 				}
 
-				result.add(new PostFormField(fieldID, fieldName, fieldType, issueField.isRequired(), defValue, allowed));
+				result.add(new PostFormField(fieldID, fieldName, fieldType, isRequired, defValue, allowed));
 			}
 			return result;
 		} catch (Exception e) {
