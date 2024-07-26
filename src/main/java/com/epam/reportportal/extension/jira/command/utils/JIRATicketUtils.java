@@ -30,6 +30,7 @@ import com.atlassian.jira.rest.client.api.domain.IssueType;
 import com.atlassian.jira.rest.client.api.domain.Project;
 import com.atlassian.jira.rest.client.api.domain.User;
 import com.atlassian.jira.rest.client.api.domain.input.ComplexIssueInputFieldValue;
+import com.atlassian.jira.rest.client.api.domain.input.FieldInput;
 import com.atlassian.jira.rest.client.api.domain.input.IssueInput;
 import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder;
 import com.epam.reportportal.model.externalsystem.PostFormField;
@@ -152,6 +153,13 @@ public class JIRATicketUtils {
         continue;
       }
       if (one.getId().equalsIgnoreCase(IssueFieldId.LINKS_FIELD.id)) {
+        continue;
+      }
+      if (one.getId().equalsIgnoreCase("parent")) {
+        if (!one.getValue().isEmpty()) {
+          issueInputBuilder.setFieldInput(new FieldInput("parent",
+              ComplexIssueInputFieldValue.with("key", one.getValue().get(0))));
+        }
         continue;
       }
 
