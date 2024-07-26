@@ -30,6 +30,7 @@ import com.atlassian.jira.rest.client.api.domain.IssueType;
 import com.atlassian.jira.rest.client.api.domain.Project;
 import com.atlassian.jira.rest.client.api.domain.User;
 import com.atlassian.jira.rest.client.api.domain.input.ComplexIssueInputFieldValue;
+import com.atlassian.jira.rest.client.api.domain.input.FieldInput;
 import com.atlassian.jira.rest.client.api.domain.input.IssueInput;
 import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder;
 import com.epam.reportportal.model.externalsystem.PostFormField;
@@ -67,6 +68,8 @@ public class JIRATicketUtils {
 
   // Field format from UI calendar control
   public static final String JIRA_FORMAT = "yyyy-MM-dd";
+
+  public static final String PARENT_FIELD_ID = "parent";
 
   private JIRATicketUtils() {
   }
@@ -152,6 +155,13 @@ public class JIRATicketUtils {
         continue;
       }
       if (one.getId().equalsIgnoreCase(IssueFieldId.LINKS_FIELD.id)) {
+        continue;
+      }
+      if (one.getId().equalsIgnoreCase(PARENT_FIELD_ID)) {
+        if (!one.getValue().isEmpty()) {
+          issueInputBuilder.setFieldInput(new FieldInput(PARENT_FIELD_ID,
+              ComplexIssueInputFieldValue.with("key", one.getValue().get(0))));
+        }
         continue;
       }
 
