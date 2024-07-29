@@ -224,6 +224,7 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
 
 	private void linkIssues(JiraRestClient jiraRestClient, Issue issue, PostFormField field) {
 		String value = CollectionUtils.isNotEmpty(field.getValue()) ? field.getValue().get(0) : "";
+
 		if (StringUtils.isNotEmpty(value)) {
 			String[] s = value.split(" ");
 			for (String v : s) {
