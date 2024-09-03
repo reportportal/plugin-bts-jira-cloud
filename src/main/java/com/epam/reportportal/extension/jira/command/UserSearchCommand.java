@@ -19,11 +19,13 @@ import static java.util.Optional.ofNullable;
 
 import com.atlassian.jira.rest.client.api.domain.User;
 import com.epam.reportportal.extension.ProjectMemberCommand;
+import com.epam.reportportal.extension.jira.command.atlassian.AsynchronousUserRestClientExtended;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.dto.UserDto;
 import com.epam.reportportal.extension.jira.utils.UserMapper;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import java.util.List;
 import java.util.Map;
 
@@ -43,9 +45,11 @@ public class UserSearchCommand extends ProjectMemberCommand<List<UserDto>> {
 
   @Override
   protected List<UserDto> invokeCommand(Integration integration, Map<String, Object> params) {
+    IntegrationParams integrationParams = integration.getParams();
     String query = (String) ofNullable(params.get(SEARCH_TERM)).orElse("");
-    Iterable<User> users = cloudJiraClientProvider.get(integration.getParams())
-        .getUserClient().findUsers(query).claim();
+    AsynchronousUserRestClientExtended userClient;
+    userClient = cloudJiraClientProvider.createUserClient(integrationParams);
+    Iterable<User> users = userClient.findUsers(query).claim();
     return UserMapper.toUserDtoList(users);
   }
 
