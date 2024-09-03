@@ -29,6 +29,7 @@ import com.epam.reportportal.extension.jira.command.GetIssueFieldsCommand;
 import com.epam.reportportal.extension.jira.command.GetIssueTypesCommand;
 import com.epam.reportportal.extension.jira.command.PostTicketCommand;
 import com.epam.reportportal.extension.jira.command.RetrieveCreationParamsCommand;
+import com.epam.reportportal.extension.jira.command.UserSearchCommand;
 import com.epam.reportportal.extension.jira.command.atlassian.CloudJiraClientProviderExtended;
 import com.epam.reportportal.extension.jira.command.RetrieveUpdateParamsCommand;
 import com.epam.reportportal.extension.jira.command.connection.TestConnectionCommand;
@@ -231,6 +232,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 
 	private Map<String, PluginCommand<?>> getCommands() {
 		List<PluginCommand<?>> commands = new ArrayList<>();
+		commands.add(new UserSearchCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
 		commands.add(new TestConnectionCommand(cloudJiraClientProviderSupplier.get()));
 		commands.add(new GetIssueFieldsCommand(projectRepository, cloudJiraClientProviderExtendedSupplier.get()));
 		commands.add(new GetIssueTypesCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
