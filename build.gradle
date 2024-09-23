@@ -30,22 +30,25 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.11.2' : 'com.epam.reportportal:commons-bom:5.11.2')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.12.1' : 'com.epam.reportportal:commons-bom:5.12.1')
     }
 }
 
 dependencies {
     if (releaseMode) {
+        implementation 'com.epam.reportportal:commons-dao'
         implementation 'com.epam.reportportal:plugin-api'
         annotationProcessor 'com.epam.reportportal:plugin-api'
     } else {
-        implementation 'com.epam.reportportal:plugin-api'
-        annotationProcessor 'com.epam.reportportal:plugin-api'
+        implementation 'com.github.reportportal:commons-dao:acf1ec7'
+        implementation 'com.github.reportportal:plugin-api:188792e'
+        annotationProcessor 'com.github.reportportal:plugin-api:188792e'
     }
+    implementation 'org.hibernate:hibernate-core:5.6.15.Final'
 
     implementation group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.1'
     implementation group: 'org.jooq', name: 'jooq', version: '3.14.4'
-    jooqRuntime 'org.postgresql:postgresql:42.2.13'
+    jooqRuntime 'org.postgresql:postgresql:42.7.3'
 
     compile 'ch.qos.logback:logback-classic:1.2.3'
     compile 'org.slf4j:slf4j-api:1.7.25'

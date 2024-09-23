@@ -22,14 +22,15 @@ import com.atlassian.jira.rest.client.api.domain.*;
 import com.epam.reportportal.extension.ProjectManagerCommand;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
+import com.epam.reportportal.model.externalsystem.AllowedValue;
+import com.epam.reportportal.model.externalsystem.PostFormField;
+import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.Preconditions;
-import com.epam.ta.reportportal.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
-import com.epam.ta.reportportal.ws.model.externalsystem.AllowedValue;
-import com.epam.ta.reportportal.ws.model.externalsystem.PostFormField;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ErrorType;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,6 +97,7 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
 				String fieldType = issueField.getSchema().getType();
 				boolean isRequired = issueField.isRequired();
 				List<AllowedValue> allowed = new ArrayList<>();
+				String commandName = null;
 
 				// Provide values for custom fields with predefined options
 				if (issueField.getAllowedValues() != null) {
@@ -140,6 +142,7 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
 				}
 				if (fieldID.equalsIgnoreCase(IssueFieldId.ASSIGNEE_FIELD.id)) {
 					allowed = getJiraProjectAssignee(jiraProject);
+					commandName = "searchUsers";
 				}
 
 				//@formatter:off
@@ -156,7 +159,12 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
 					continue;
 				}
 
-				result.add(new PostFormField(fieldID, fieldName, fieldType, isRequired, defValue, allowed));
+				PostFormField postForm = new PostFormField(fieldID, fieldName, fieldType, isRequired, defValue,
+						allowed);
+				if (StringUtils.isNotEmpty(commandName)) {
+					postForm.setCommandName(commandName);
+				}
+				result.add(postForm);
 			}
 			return result;
 		} catch (Exception e) {

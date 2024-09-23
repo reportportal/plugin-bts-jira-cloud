@@ -15,18 +15,19 @@
  */
 package com.epam.reportportal.extension.jira.command;
 
+import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.rules.exception.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
+
 import com.epam.reportportal.extension.CommonPluginCommand;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
-import com.epam.ta.reportportal.exception.ReportPortalException;
-import com.epam.ta.reportportal.ws.model.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.reportportal.rules.exception.ErrorType;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections.MapUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 
 import java.util.Map;
 
-import static com.epam.ta.reportportal.commons.validation.BusinessRule.expect;
-import static com.epam.ta.reportportal.ws.model.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>

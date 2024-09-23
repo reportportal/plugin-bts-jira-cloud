@@ -24,12 +24,20 @@ export const IntegrationFormFields = (props) => {
         validate={btsIntegrationName}
         disabled={disabled}
         isRequired
+        dataAutomationId="integrationNameField"
       >
         <FieldErrorHint provideHint={false}>
-          <FieldText maxLength={55} defaultWidth={false} />
+          <FieldText defaultWidth={false} />
         </FieldErrorHint>
       </FieldElement>
-      <FieldElement name="url" label={LABELS.URL} validate={btsUrl} disabled={disabled} isRequired>
+      <FieldElement
+        name="url"
+        label={LABELS.URL}
+        validate={btsUrl}
+        disabled={disabled}
+        isRequired
+        dataAutomationId="linkToBTSField"
+      >
         <FieldErrorHint provideHint={false}>
           <FieldText defaultWidth={false} />
         </FieldErrorHint>
@@ -40,9 +48,10 @@ export const IntegrationFormFields = (props) => {
         validate={btsProjectKey}
         disabled={disabled}
         isRequired
+        dataAutomationId="projectKeyInBTSField"
       >
         <FieldErrorHint provideHint={false}>
-          <FieldText maxLength={55} defaultWidth={false} />
+          <FieldText defaultWidth={false} />
         </FieldErrorHint>
       </FieldElement>
       <FieldElement
@@ -51,6 +60,7 @@ export const IntegrationFormFields = (props) => {
         validate={email}
         disabled={disabled}
         isRequired
+        dataAutomationId="emailBTSField"
       >
         <FieldErrorHint provideHint={false}>
           <FieldText defaultWidth={false} />
@@ -62,6 +72,7 @@ export const IntegrationFormFields = (props) => {
         disabled={disabled}
         validate={requiredField}
         isRequired
+        dataAutomationId="apiTokenBTSField"
       >
         <FieldErrorHint provideHint={false}>
           <FieldTextFlex />
