@@ -23,6 +23,7 @@ import com.epam.reportportal.extension.ProjectManagerCommand;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.reportportal.rules.exception.ErrorType;
@@ -39,8 +40,9 @@ public class GetIssueTypesCommand extends ProjectManagerCommand<List<String>> {
   private final CloudJiraClientProvider cloudJiraClientProvider;
 
   public GetIssueTypesCommand(ProjectRepository projectRepository,
-      CloudJiraClientProvider cloudJiraClientProvider) {
-    super(projectRepository);
+      CloudJiraClientProvider cloudJiraClientProvider,
+      OrganizationRepositoryCustom organizationRepository) {
+    super(projectRepository, organizationRepository);
     this.cloudJiraClientProvider = cloudJiraClientProvider;
   }
 
