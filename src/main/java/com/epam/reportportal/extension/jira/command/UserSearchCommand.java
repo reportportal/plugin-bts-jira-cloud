@@ -24,6 +24,7 @@ import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvide
 import com.epam.reportportal.extension.jira.dto.UserDto;
 import com.epam.reportportal.extension.jira.utils.UserMapper;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import java.util.List;
@@ -38,8 +39,9 @@ public class UserSearchCommand extends ProjectMemberCommand<List<UserDto>> {
   private final CloudJiraClientProvider cloudJiraClientProvider;
 
   public UserSearchCommand(ProjectRepository projectRepository,
-      CloudJiraClientProvider cloudJiraClientProvider) {
-    super(projectRepository);
+      CloudJiraClientProvider cloudJiraClientProvider,
+      OrganizationRepositoryCustom organizationRepository) {
+    super(projectRepository, organizationRepository);
     this.cloudJiraClientProvider = cloudJiraClientProvider;
   }
 

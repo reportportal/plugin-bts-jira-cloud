@@ -27,6 +27,7 @@ import com.epam.reportportal.model.externalsystem.PostFormField;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.reportportal.rules.exception.ErrorType;
@@ -48,10 +49,12 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
 
 	private final CloudJiraClientProvider cloudJiraClientProvider;
 
-	public GetIssueFieldsCommand(ProjectRepository projectRepository, CloudJiraClientProvider cloudJiraClientProvider) {
-		super(projectRepository);
-		this.cloudJiraClientProvider = cloudJiraClientProvider;
-	}
+  public GetIssueFieldsCommand(ProjectRepository projectRepository,
+      OrganizationRepositoryCustom organizationRepository,
+      CloudJiraClientProvider cloudJiraClientProvider) {
+    super(projectRepository, organizationRepository);
+    this.cloudJiraClientProvider = cloudJiraClientProvider;
+  }
 
 	@Override
 	public String getName() {
