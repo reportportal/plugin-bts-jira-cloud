@@ -1,5 +1,7 @@
-sourceCompatibility = JavaVersion.VERSION_11
-targetCompatibility = JavaVersion.VERSION_11
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
 
 project.ext {
     publishRepo = "https://maven.pkg.github.com/reportportal/plugin-bts-jira-cloud"
