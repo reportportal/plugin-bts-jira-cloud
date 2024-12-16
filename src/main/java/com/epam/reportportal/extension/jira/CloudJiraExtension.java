@@ -29,9 +29,9 @@ import com.epam.reportportal.extension.jira.command.GetIssueFieldsCommand;
 import com.epam.reportportal.extension.jira.command.GetIssueTypesCommand;
 import com.epam.reportportal.extension.jira.command.PostTicketCommand;
 import com.epam.reportportal.extension.jira.command.RetrieveCreationParamsCommand;
+import com.epam.reportportal.extension.jira.command.RetrieveUpdateParamsCommand;
 import com.epam.reportportal.extension.jira.command.UserSearchCommand;
 import com.epam.reportportal.extension.jira.command.atlassian.CloudJiraClientProviderExtended;
-import com.epam.reportportal.extension.jira.command.RetrieveUpdateParamsCommand;
 import com.epam.reportportal.extension.jira.command.connection.TestConnectionCommand;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.JIRATicketDescriptionService;
@@ -62,7 +62,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.jasypt.util.text.BasicTextEncryptor;
-import org.jooq.DSLContext;
 import org.pf4j.Extension;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,7 +76,6 @@ import org.springframework.context.support.AbstractApplicationContext;
  */
 @Extension
 public class CloudJiraExtension implements ReportPortalExtensionPoint, DisposableBean {
-
 	private static final String DOCUMENTATION_LINK_FIELD = "documentationLink";
 	private static final String DOCUMENTATION_LINK = "https://reportportal.io/docs/plugins/AtlassianJiraCloud";
 	public static final String BINARY_DATA_PROPERTIES_FILE_ID = "binary-data.properties";
@@ -91,8 +89,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
   private final Supplier<Map<String, CommonPluginCommand<?>>> commonPluginCommandMapping =
       new MemoizingSupplier<>(this::getCommonCommands);
 
-  @Autowired
-  private ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper;
   private final RequestEntityConverter requestEntityConverter;
 
   private final Supplier<ApplicationListener<PluginEvent>> pluginLoadedListenerSupplier;
@@ -105,7 +102,6 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 
   @Autowired
   private ApplicationContext applicationContext;
-
   @Autowired
   private IntegrationTypeRepository integrationTypeRepository;
 
@@ -138,6 +134,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
     resourcesDir =
         IntegrationTypeProperties.RESOURCES_DIRECTORY.getValue(initParams).map(String::valueOf)
             .orElse("");
+    objectMapper = configureObjectMapper();
 
     pluginLoadedListenerSupplier = new MemoizingSupplier<>(() -> new PluginEventListener(
         PLUGIN_ID, new PluginEventHandlerFactory(integrationTypeRepository, integrationRepository,

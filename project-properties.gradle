@@ -9,7 +9,3 @@ project.ext {
     releaseMode = project.hasProperty("releaseMode")
     pluginsDir = "$buildDir/plugins"
 }
-
-wrapper {
-    gradleVersion = '5.4.1'
-}
