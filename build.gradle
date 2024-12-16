@@ -3,7 +3,6 @@ plugins {
     id 'java'
     id 'jacoco'
     id "com.github.node-gradle.node" version "2.2.1"
-    id "org.jooq.jooq-codegen-gradle" version "3.19.13"
 }
 
 apply from: 'project-properties.gradle'
@@ -11,7 +10,6 @@ apply from: 'project-properties.gradle'
 def scriptsUrl = 'https://raw.githubusercontent.com/reportportal/gradle-scripts/' +
         (releaseMode ? getProperty('scripts.version') : 'develop')
 
-apply from: 'jooq.gradle'
 apply from: 'ui.gradle'
 apply from: scriptsUrl + '/release-fat.gradle'
 apply from: scriptsUrl + '/signing.gradle'
@@ -37,7 +35,7 @@ dependencies {
         implementation 'com.epam.reportportal:plugin-api'
         annotationProcessor 'com.epam.reportportal:plugin-api'
     } else {
-        implementation 'com.github.reportportal:commons-dao:527168b'
+        implementation 'com.github.reportportal:commons-dao:8dcc514'
         implementation 'com.github.reportportal:plugin-api:815c74a'
         annotationProcessor 'com.github.reportportal:plugin-api:815c74a'
     }
@@ -48,8 +46,7 @@ dependencies {
     implementation 'ch.qos.logback:logback-classic:1.2.3'
     implementation 'org.slf4j:slf4j-api:1.7.25'
 
-    implementation 'io.atlassian.fugue:fugue:4.7.2'
-    implementation 'com.atlassian.jira:jira-rest-java-client-core:5.2.1'
+    implementation("com.atlassian.jira:jira-rest-java-client-core:6.0.1")
 
     testImplementation('org.junit.jupiter:junit-jupiter:5.6.0')
 
@@ -111,14 +108,8 @@ shadowJar {
     configurations = [project.configurations.compileClasspath]
     zip64 true
     dependencies {
-        exclude(dependency('com.github.reportportal:'))
-        exclude(dependency('com.epam.reportportal:'))
-        exclude(dependency('org.springframework:'))
-        exclude(dependency('org.springframework.security:'))
-        exclude(dependency('org.springframework.data:'))
-        exclude(dependency('org.springframework.boot:'))
-        exclude(dependency('ch.qos.logback:'))
-        exclude(dependency('org.slf4j:'))
+        include(dependency('com.atlassian.jira:jira-rest-java-client-api:6.0.1'))
+        include(dependency('com.atlassian.httpclient:atlassian-httpclient-api:4.0.1'))
     }
 }
 

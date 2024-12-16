@@ -91,7 +91,8 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
   private final Supplier<Map<String, CommonPluginCommand<?>>> commonPluginCommandMapping =
       new MemoizingSupplier<>(this::getCommonCommands);
 
-  private final ObjectMapper objectMapper;
+  @Autowired
+  private ObjectMapper objectMapper;
   private final RequestEntityConverter requestEntityConverter;
 
   private final Supplier<ApplicationListener<PluginEvent>> pluginLoadedListenerSupplier;
@@ -104,9 +105,6 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 
   @Autowired
   private ApplicationContext applicationContext;
-
-  @Autowired
-  private DSLContext dsl;
 
   @Autowired
   private IntegrationTypeRepository integrationTypeRepository;
@@ -140,7 +138,6 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
     resourcesDir =
         IntegrationTypeProperties.RESOURCES_DIRECTORY.getValue(initParams).map(String::valueOf)
             .orElse("");
-    objectMapper = configureObjectMapper();
 
     pluginLoadedListenerSupplier = new MemoizingSupplier<>(() -> new PluginEventListener(
         PLUGIN_ID, new PluginEventHandlerFactory(integrationTypeRepository, integrationRepository,
