@@ -168,6 +168,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
     params.put(ALLOWED_COMMANDS, new ArrayList<>(pluginCommandMapping.get().keySet()));
     params.put(DOCUMENTATION_LINK_FIELD, DOCUMENTATION_LINK);
     params.put(COMMON_COMMANDS, new ArrayList<>(commonPluginCommandMapping.get().keySet()));
+    initListeners();
     return params;
   }
 
