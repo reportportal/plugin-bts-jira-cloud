@@ -1,13 +1,11 @@
-sourceCompatibility = JavaVersion.VERSION_11
-targetCompatibility = JavaVersion.VERSION_11
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
 
 project.ext {
     publishRepo = "https://maven.pkg.github.com/reportportal/plugin-bts-jira-cloud"
     dependencyRepos = ["plugin-api", "commons-bom"]
     releaseMode = project.hasProperty("releaseMode")
     pluginsDir = "$buildDir/plugins"
-}
-
-wrapper {
-    gradleVersion = '5.4.1'
 }

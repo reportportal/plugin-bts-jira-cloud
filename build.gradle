@@ -1,12 +1,8 @@
-import com.github.spotbugs.SpotBugsTask
-
 plugins {
-    id "io.spring.dependency-management" version "1.0.9.RELEASE"
+    id "io.spring.dependency-management" version "1.1.4"
     id 'java'
     id 'jacoco'
-    id "com.github.spotbugs" version "3.0.0"
     id "com.github.node-gradle.node" version "2.2.1"
-    id 'nu.studer.jooq' version '3.0.3'
 }
 
 apply from: 'project-properties.gradle'
@@ -14,7 +10,6 @@ apply from: 'project-properties.gradle'
 def scriptsUrl = 'https://raw.githubusercontent.com/reportportal/gradle-scripts/' +
         (releaseMode ? getProperty('scripts.version') : 'develop')
 
-apply from: 'jooq.gradle'
 apply from: 'ui.gradle'
 apply from: scriptsUrl + '/release-fat.gradle'
 apply from: scriptsUrl + '/signing.gradle'
@@ -35,47 +30,29 @@ dependencyManagement {
 }
 
 dependencies {
+    // ALL new dependencies should be included in shadowJar plugin!
+    // transitive dependencies may be required as well. could be checked in runtime only!
     if (releaseMode) {
         implementation 'com.epam.reportportal:commons-dao'
         implementation 'com.epam.reportportal:plugin-api'
         annotationProcessor 'com.epam.reportportal:plugin-api'
     } else {
-        implementation 'com.github.reportportal:commons-dao:acf1ec7'
-        implementation 'com.github.reportportal:plugin-api:188792e'
-        annotationProcessor 'com.github.reportportal:plugin-api:188792e'
+        implementation 'com.github.reportportal:commons-dao:8dcc514'
+        implementation 'com.github.reportportal:plugin-api:815c74a'
+        annotationProcessor 'com.github.reportportal:plugin-api:815c74a'
     }
-    implementation 'org.hibernate:hibernate-core:5.6.15.Final'
 
-    implementation group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.1'
-    implementation group: 'org.jooq', name: 'jooq', version: '3.14.4'
-    jooqRuntime 'org.postgresql:postgresql:42.7.3'
+    implementation("com.atlassian.jira:jira-rest-java-client-core:6.0.1")
+    implementation "io.atlassian.fugue:fugue:6.0.1"
 
-    compile 'ch.qos.logback:logback-classic:1.2.3'
-    compile 'org.slf4j:slf4j-api:1.7.25'
-
-    compile 'io.atlassian.fugue:fugue:4.7.2'
-    compile 'com.atlassian.jira:jira-rest-java-client-core:5.2.1'
-
-    testImplementation('org.junit.jupiter:junit-jupiter:5.6.0')
-
-}
-
-spotbugs {
-    sourceSets = [sourceSets.main]
-    reportLevel = "high"
-}
-tasks.withType(SpotBugsTask) {
-    reports {
-        xml.enabled false
-        html.enabled true
-    }
+    testImplementation('org.junit.jupiter:junit-jupiter:5.11.0')
 }
 
 test {
     useJUnitPlatform()
     jacocoTestReport {
         reports {
-            xml.enabled true
+            xml.required = true
         }
     }
 }
@@ -106,7 +83,7 @@ jar {
     }
     manifest {
         attributes(
-                "Class-Path": configurations.compile.collect { it.getName() }.join(' '),
+                "Class-Path": configurations.compileClasspath.collect { it.getName() }.join(' '),
                 "Plugin-Id": "${pluginId}",
                 "Plugin-Version": "${project.version}",
                 "Plugin-Provider": "Report Portal",
@@ -124,17 +101,31 @@ shadowJar {
     from("ui/build") {
         into("/resources")
     }
-    configurations = [project.configurations.compile]
+    configurations = [project.configurations.compileClasspath]
     zip64 true
     dependencies {
-        exclude(dependency('com.github.reportportal:'))
-        exclude(dependency('com.epam.reportportal:'))
-        exclude(dependency('org.springframework:'))
-        exclude(dependency('org.springframework.security:'))
-        exclude(dependency('org.springframework.data:'))
-        exclude(dependency('org.springframework.boot:'))
-        exclude(dependency('ch.qos.logback:'))
-        exclude(dependency('org.slf4j:'))
+        include(dependency("com.atlassian.jira:jira-rest-java-client-api:.*"))
+        include(dependency("com.atlassian.jira:jira-rest-java-client-core:.*"))
+        include(dependency("com.atlassian.httpclient:atlassian-httpclient-api:.*"))
+        include(dependency("com.atlassian.httpclient:atlassian-httpclient-library:.*"))
+        include(dependency("com.atlassian.sal:sal-api:.*"))
+        include(dependency("com.atlassian.event:atlassian-event:.*"))
+        include(dependency("io.atlassian.util.concurrent:atlassian-util-concurrent:.*"))
+        include(dependency("io.atlassian.fugue:fugue:.*"))
+        include(dependency("org.apache.httpcomponents:httpasyncclient:.*"))
+        include(dependency("org.apache.httpcomponents:httpasyncclient-cache:.*"))
+        include(dependency("org.apache.httpcomponents:httpclient:.*"))
+        include(dependency("org.apache.httpcomponents:httpclient-cache:.*"))
+        include(dependency("org.apache.httpcomponents:httpcore:.*"))
+        include(dependency("org.apache.httpcomponents:httpcore-nio:.*"))
+        include(dependency("org.apache.httpcomponents:httpcore-mime:.*"))
+        include(dependency("org.glassfish.jersey.core:jersey-server:.*"))
+        include(dependency("org.glassfish.jersey.core:jersey-common:.*"))
+        include(dependency("jakarta.ws.rs:jakarta.ws.rs-api:.*"))
+        include(dependency("jakarta.annotation:jakarta.annotation-api:.*"))
+        include(dependency("org.glassfish.hk2.external:jakarta.inject:.*"))
+        include(dependency("org.glassfish.hk2:osgi-resource-locator:.*"))
+        include(dependency("org.glassfish.jaxb:jaxb-runtime:.*"))
     }
 }
 
@@ -144,9 +135,9 @@ task plugin(type: Jar) {
         with jar
     }
     into('lib') {
-        from configurations.compile
+        from configurations.compileClasspath
     }
-    extension('zip')
+    archiveExtension.set('zip')
 }
 
 task assemblePlugin(type: Copy) {
