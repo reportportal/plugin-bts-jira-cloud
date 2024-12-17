@@ -187,10 +187,10 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
     return IntegrationGroupEnum.BTS;
   }
 
-  @PostConstruct
-  public void createIntegration() {
-    initListeners();
-  }
+//  @PostConstruct
+//  public void createIntegration() {
+//    initListeners();
+//  }
 
   private void initListeners() {
     ApplicationEventMulticaster applicationEventMulticaster = applicationContext.getBean(
