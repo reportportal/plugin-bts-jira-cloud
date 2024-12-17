@@ -22,15 +22,14 @@ import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
+import com.epam.reportportal.extension.jira.utils.IntegrationValidator;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -60,6 +59,7 @@ public class TestConnectionCommand implements PluginCommand<Boolean> {
         () -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
             "Project key is not specified."
         ));
+    IntegrationValidator.validateThirdPartyUrl(integration);
 
     try (JiraRestClient restClient = cloudJiraClientProvider.get(integrationParams)) {
       return restClient.getProjectClient().getProject(project).claim() != null;
