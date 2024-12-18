@@ -95,7 +95,6 @@ jar {
 }
 
 shadowJar {
-    archiveClassifier.set(null)
     from("src/main/resources") {
         into("/resources")
     }
