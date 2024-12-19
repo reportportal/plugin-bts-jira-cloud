@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
-import { LABELS } from '../constans';
+import { LABELS } from '../constants';
 
 export const IntegrationFormFields = (props) => {
   const { initialize, disabled, initialData, updateMetaData, ...extensionProps } = props;
   const {
     components: { FieldErrorHint, FieldElement, FieldText, FieldTextFlex },
-    validators: { requiredField, btsUrl, btsProjectKey, btsIntegrationName, email },
+    validators: { requiredField, btsJiraCloudUrl, btsProjectKey, btsIntegrationName, email },
     constants: { SECRET_FIELDS_KEY },
   } = extensionProps;
 
@@ -33,7 +33,7 @@ export const IntegrationFormFields = (props) => {
       <FieldElement
         name="url"
         label={LABELS.URL}
-        validate={btsUrl}
+        validate={btsJiraCloudUrl}
         disabled={disabled}
         isRequired
         dataAutomationId="linkToBTSField"
