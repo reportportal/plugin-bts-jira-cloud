@@ -118,7 +118,7 @@ shadowJar {
         include(dependency("org.apache.httpcomponents:httpclient-cache:.*"))
         include(dependency("org.apache.httpcomponents:httpcore:.*"))
         include(dependency("org.apache.httpcomponents:httpcore-nio:.*"))
-        include(dependency("org.apache.httpcomponents:httpcore-mime:.*"))
+        include(dependency("org.apache.httpcomponents:httpmime:.*"))
         include(dependency("org.glassfish.jersey.core:jersey-server:.*"))
         include(dependency("org.glassfish.jersey.core:jersey-common:.*"))
         include(dependency("jakarta.ws.rs:jakarta.ws.rs-api:.*"))
