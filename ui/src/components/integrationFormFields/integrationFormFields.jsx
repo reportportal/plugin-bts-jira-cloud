@@ -1,11 +1,12 @@
 import React, { useEffect } from 'react';
 import { LABELS } from '../constants';
+import { btsJiraCloudUrl } from '../utils';
 
 export const IntegrationFormFields = (props) => {
   const { initialize, disabled, initialData, updateMetaData, ...extensionProps } = props;
   const {
     components: { FieldErrorHint, FieldElement, FieldText, FieldTextFlex },
-    validators: { requiredField, btsJiraCloudUrl, btsProjectKey, btsIntegrationName, email },
+    validators: { requiredField, btsProjectKey, btsIntegrationName, email },
     constants: { SECRET_FIELDS_KEY },
   } = extensionProps;
 
