@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
  * @author Dzmitry_Kavalets
  */
 public class JIRATicketDescriptionService {
+
   public static final String JIRA_MARKUP_LINE_BREAK = "\\\\ ";
   public static final String BACK_LINK_HEADER = "h3.*Back link to Report Portal:*";
   public static final String BACK_LINK_PATTERN = "[Link to defect|%s]%n";
@@ -60,15 +61,12 @@ public class JIRATicketDescriptionService {
 
   private final LogRepository logRepository;
   private final TestItemRepository itemRepository;
-  private final DateFormat dateFormat;
-  private final MimeTypes mimeRepository;
+  private final DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+  private final MimeTypes mimeRepository = TikaConfig.getDefaultConfig().getMimeRepository();
 
-  public JIRATicketDescriptionService(LogRepository logRepository,
-      TestItemRepository itemRepository) {
-    this.dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+  public JIRATicketDescriptionService(LogRepository logRepository, TestItemRepository itemRepository) {
     this.logRepository = logRepository;
     this.itemRepository = itemRepository;
-    this.mimeRepository = TikaConfig.getDefaultConfig().getMimeRepository();
   }
 
   /**
@@ -83,11 +81,11 @@ public class JIRATicketDescriptionService {
     }
     StringBuilder descriptionBuilder = new StringBuilder();
 
-    TestItem item = itemRepository.findById(ticketRQ.getTestItemId()).orElseThrow(
-        () -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, ticketRQ.getTestItemId()));
+    TestItem item = itemRepository.findById(ticketRQ.getTestItemId())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.TEST_ITEM_NOT_FOUND, ticketRQ.getTestItemId()));
 
-    ticketRQ.getBackLinks().keySet().forEach(
-        backLinkId -> updateDescriptionBuilder(descriptionBuilder, ticketRQ, backLinkId, item));
+    ticketRQ.getBackLinks().keySet()
+        .forEach(backLinkId -> updateDescriptionBuilder(descriptionBuilder, ticketRQ, backLinkId, item));
 
     return descriptionBuilder.toString();
   }
@@ -105,7 +103,8 @@ public class JIRATicketDescriptionService {
       if (StringUtils.isNotBlank(ticketRQ.getBackLinks().get(backLinkId))) {
         // If test-item contains any comments, then add it for JIRA
         // comments section
-        ofNullable(item.getItemResults()).flatMap(result -> ofNullable(result.getIssue()))
+        ofNullable(item.getItemResults())
+            .flatMap(result -> ofNullable(result.getIssue()))
             .ifPresent(issue -> {
               if (StringUtils.isNotBlank(issue.getIssueDescription())) {
                 descriptionBuilder.append(COMMENTS_HEADER).append("\n")
@@ -117,25 +116,19 @@ public class JIRATicketDescriptionService {
     updateWithLogsInfo(descriptionBuilder, backLinkId, ticketRQ);
   }
 
-  private StringBuilder updateWithLogsInfo(StringBuilder descriptionBuilder, Long backLinkId,
+  private void updateWithLogsInfo(StringBuilder descriptionBuilder, Long backLinkId,
       PostTicketRQ ticketRQ) {
-    itemRepository.findById(backLinkId)
-        .ifPresent(item -> ofNullable(item.getLaunchId()).ifPresent(launchId -> {
-          List<Log> logs =
-              logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsWithLimit(launchId,
-                  Collections.singletonList(item.getItemId()), ticketRQ.getNumberOfLogs()
-              );
-          if (CollectionUtils.isNotEmpty(logs) && (ticketRQ.getIsIncludeLogs()
-              || ticketRQ.getIsIncludeScreenshots())) {
-            descriptionBuilder.append("h3.*Test execution log:*\n").append(
-                "{panel:title=Test execution log|borderStyle=solid|borderColor=#ccc|titleColor=#34302D|titleBGColor=#6DB33F}");
-            logs.forEach(log -> updateWithLog(descriptionBuilder, log, ticketRQ.getIsIncludeLogs(),
-                ticketRQ.getIsIncludeScreenshots()
-            ));
+    itemRepository.findById(backLinkId).ifPresent(item -> ofNullable(item.getLaunchId())
+        .ifPresent(launchId -> {
+          List<Log> logs = logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsWithLimit(launchId,
+              Collections.singletonList(item.getItemId()), ticketRQ.getNumberOfLogs());
+          if (CollectionUtils.isNotEmpty(logs) && (ticketRQ.getIsIncludeLogs() || ticketRQ.getIsIncludeScreenshots())) {
+            descriptionBuilder.append("h3.*Test execution log:*\n")
+                .append("{panel:title=Test execution log|borderStyle=solid|borderColor=#ccc|titleColor=#34302D|titleBGColor=#6DB33F}");
+            logs.forEach(log -> updateWithLog(descriptionBuilder, log, ticketRQ.getIsIncludeLogs(), ticketRQ.getIsIncludeScreenshots()));
             descriptionBuilder.append("{panel}\n");
           }
         }));
-    return descriptionBuilder;
   }
 
   private void updateWithLog(StringBuilder descriptionBuilder, Log log, boolean includeLog,
@@ -145,25 +138,22 @@ public class JIRATicketDescriptionService {
     }
 
     if (includeScreenshot) {
-      ofNullable(log.getAttachment()).ifPresent(
-          attachment -> addAttachment(descriptionBuilder, attachment));
+      ofNullable(log.getAttachment()).ifPresent(attachment -> addAttachment(descriptionBuilder, attachment));
     }
   }
 
   private String getFormattedMessage(Log log) {
     StringBuilder messageBuilder = new StringBuilder();
     ofNullable(log.getLogTime()).ifPresent(logTime -> messageBuilder.append(" Time: ")
-        .append(dateFormat.format(
-            TO_DATE.apply(logTime.atOffset(ZoneOffset.UTC).toLocalDateTime()))).append(", "));
-    ofNullable(log.getLogLevel()).ifPresent(
-        logLevel -> messageBuilder.append("Level: ").append(logLevel).append(", "));
+        .append(dateFormat.format(TO_DATE.apply(logTime.atOffset(ZoneOffset.UTC).toLocalDateTime()))).append(", "));
+    ofNullable(log.getLogLevel())
+        .ifPresent(logLevel -> messageBuilder.append("Level: ").append(logLevel).append(", "));
     messageBuilder.append("Log: ").append(log.getLogMessage()).append("\n");
     return messageBuilder.toString();
   }
 
   private void addAttachment(StringBuilder descriptionBuilder, Attachment attachment) {
-    if (StringUtils.isNotBlank(attachment.getContentType()) && StringUtils.isNotBlank(
-        attachment.getFileId())) {
+    if (StringUtils.isNotBlank(attachment.getContentType()) && StringUtils.isNotBlank(attachment.getFileId())) {
       try {
         MimeType mimeType = mimeRepository.forName(attachment.getContentType());
         if (attachment.getContentType().contains(IMAGE_CONTENT)) {
@@ -176,7 +166,7 @@ public class JIRATicketDescriptionService {
         descriptionBuilder.append(JIRA_MARKUP_LINE_BREAK);
       } catch (MimeTypeException e) {
         descriptionBuilder.append(JIRA_MARKUP_LINE_BREAK);
-        LOGGER.error("JIRATicketDescriptionService error: " + e.getMessage(), e);
+        LOGGER.error("JIRATicketDescriptionService error: {}", e.getMessage(), e);
       }
 
     }

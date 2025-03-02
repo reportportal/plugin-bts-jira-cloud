@@ -30,9 +30,8 @@ import com.epam.reportportal.extension.jira.command.GetIssueTypesCommand;
 import com.epam.reportportal.extension.jira.command.PostTicketCommand;
 import com.epam.reportportal.extension.jira.command.RetrieveCreationParamsCommand;
 import com.epam.reportportal.extension.jira.command.RetrieveUpdateParamsCommand;
+import com.epam.reportportal.extension.jira.command.TestConnectionCommand;
 import com.epam.reportportal.extension.jira.command.UserSearchCommand;
-import com.epam.reportportal.extension.jira.command.atlassian.CloudJiraClientProviderExtended;
-import com.epam.reportportal.extension.jira.command.connection.TestConnectionCommand;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.JIRATicketDescriptionService;
 import com.epam.reportportal.extension.jira.event.launch.StartLaunchEventListener;
@@ -76,9 +75,10 @@ import org.springframework.context.support.AbstractApplicationContext;
  */
 @Extension
 public class CloudJiraExtension implements ReportPortalExtensionPoint, DisposableBean {
-	private static final String DOCUMENTATION_LINK_FIELD = "documentationLink";
-	private static final String DOCUMENTATION_LINK = "https://reportportal.io/docs/plugins/AtlassianJiraCloud";
-	public static final String BINARY_DATA_PROPERTIES_FILE_ID = "binary-data.properties";
+
+  private static final String DOCUMENTATION_LINK_FIELD = "documentationLink";
+  private static final String DOCUMENTATION_LINK = "https://reportportal.io/docs/plugins/AtlassianJiraCloud";
+  public static final String BINARY_DATA_PROPERTIES_FILE_ID = "binary-data.properties";
 
   private static final String PLUGIN_ID = "JIRA Cloud";
 
@@ -96,7 +96,6 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
   private final Supplier<ApplicationListener<StartLaunchEvent>> startLaunchEventListenerSupplier;
 
   private final Supplier<CloudJiraClientProvider> cloudJiraClientProviderSupplier;
-	private final Supplier<CloudJiraClientProvider> cloudJiraClientProviderExtendedSupplier;
 
   private final Supplier<JIRATicketDescriptionService> jiraTicketDescriptionServiceSupplier;
 
@@ -131,9 +130,8 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
   private DataStoreService dataStoreService;
 
   public CloudJiraExtension(Map<String, Object> initParams) {
-    resourcesDir =
-        IntegrationTypeProperties.RESOURCES_DIRECTORY.getValue(initParams).map(String::valueOf)
-            .orElse("");
+    resourcesDir = IntegrationTypeProperties.RESOURCES_DIRECTORY.getValue(initParams).map(String::valueOf)
+        .orElse("");
     objectMapper = configureObjectMapper();
 
     pluginLoadedListenerSupplier = new MemoizingSupplier<>(() -> new PluginEventListener(
@@ -145,9 +143,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 
     requestEntityConverter = new RequestEntityConverter(objectMapper);
 
-    cloudJiraClientProviderSupplier =
-        new MemoizingSupplier<>(() -> new CloudJiraClientProvider(textEncryptor));
-		cloudJiraClientProviderExtendedSupplier = new MemoizingSupplier<>(() -> new CloudJiraClientProviderExtended(textEncryptor));
+    cloudJiraClientProviderSupplier = new MemoizingSupplier<>(() -> new CloudJiraClientProvider(textEncryptor));
 
     jiraTicketDescriptionServiceSupplier = new MemoizingSupplier<>(
         () -> new JIRATicketDescriptionService(logRepository, testItemRepository));
@@ -224,19 +220,15 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
     return commands.stream().collect(Collectors.toMap(NamedPluginCommand::getName, it -> it));
   }
 
-	private Map<String, PluginCommand<?>> getCommands() {
-		List<PluginCommand<?>> commands = new ArrayList<>();
-		commands.add(new UserSearchCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
-		commands.add(new TestConnectionCommand(cloudJiraClientProviderSupplier.get()));
-		commands.add(new GetIssueFieldsCommand(projectRepository, cloudJiraClientProviderExtendedSupplier.get()));
-		commands.add(new GetIssueTypesCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
-		commands.add(new PostTicketCommand(projectRepository,
-				requestEntityConverter,
-				cloudJiraClientProviderExtendedSupplier.get(),
-				jiraTicketDescriptionServiceSupplier.get(),
-				dataStoreService
-		));
-		return commands.stream().collect(Collectors.toMap(NamedPluginCommand::getName, it -> it));
+  private Map<String, PluginCommand<?>> getCommands() {
+    List<PluginCommand<?>> commands = new ArrayList<>();
+    commands.add(new UserSearchCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
+    commands.add(new TestConnectionCommand(cloudJiraClientProviderSupplier.get()));
+    commands.add(new GetIssueFieldsCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
+    commands.add(new GetIssueTypesCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
+    commands.add(new PostTicketCommand(projectRepository, requestEntityConverter, cloudJiraClientProviderSupplier.get(),
+        jiraTicketDescriptionServiceSupplier.get(), dataStoreService));
+    return commands.stream().collect(Collectors.toMap(NamedPluginCommand::getName, it -> it));
 
   }
 }

@@ -3,8 +3,11 @@ plugins {
     id 'java'
     id 'jacoco'
     id "com.github.node-gradle.node" version "2.2.1"
+    id "org.openapi.generator" version "7.12.0"
     id "org.springframework.boot" version "3.4.2" apply false
 }
+
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 apply from: 'project-properties.gradle'
 
@@ -44,10 +47,45 @@ dependencies {
         annotationProcessor 'com.github.reportportal:plugin-api:8874441'
     }
 
-    implementation("com.atlassian.jira:jira-rest-java-client-core:6.0.1")
-    implementation "io.atlassian.fugue:fugue:6.0.1"
+    implementation "org.hibernate.validator:hibernate-validator:8.0.2.Final"
+    implementation 'jakarta.el:jakarta.el-api:6.0.1'
+    implementation 'org.glassfish:jakarta.el:4.0.2'
+    implementation "org.springdoc:springdoc-openapi-common:1.8.0"
+
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
     testImplementation('org.junit.jupiter:junit-jupiter:5.11.4')
+    testImplementation "org.mockito:mockito-junit-jupiter:5.14.2"
+
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs "$buildDir/generated/src/main/java"
+            exclude("$buildDir/generated/src/main/java/com/epam/reportportal/api/jira/MyselfApi.java")
+        }
+    }
+}
+
+
+tasks.register('generateJiraApi', GenerateTask) {
+    def f = new File("swagger-v3.v3.json")
+    if (!f.exists()) {
+        new URI("https://developer.atlassian.com/cloud/jira/platform/swagger-v3.v3.json?_v=1.7742.0-0.1320.0")
+                .toURL()
+                .withInputStream { i -> f.withOutputStream { it << i } }
+    }
+
+    generatorName.set("java")
+    inputSpec.set("swagger-v3.v3.json")
+    outputDir.set("$buildDir/generated")
+    configFile.set("$rootDir/src/main/resources/openapi/config.json")
+    ignoreFileOverride = "${projectDir.path}/.openapi-generator-ignore"
+    skipOverwrite.set(true)
 }
 
 test {
@@ -105,28 +143,8 @@ shadowJar {
     configurations = [project.configurations.compileClasspath]
     zip64 true
     dependencies {
-        include(dependency("com.atlassian.jira:jira-rest-java-client-api:.*"))
-        include(dependency("com.atlassian.jira:jira-rest-java-client-core:.*"))
-        include(dependency("com.atlassian.httpclient:atlassian-httpclient-api:.*"))
-        include(dependency("com.atlassian.httpclient:atlassian-httpclient-library:.*"))
-        include(dependency("com.atlassian.sal:sal-api:.*"))
-        include(dependency("com.atlassian.event:atlassian-event:.*"))
-        include(dependency("io.atlassian.util.concurrent:atlassian-util-concurrent:.*"))
-        include(dependency("io.atlassian.fugue:fugue:.*"))
-        include(dependency("org.apache.httpcomponents:httpasyncclient:.*"))
-        include(dependency("org.apache.httpcomponents:httpasyncclient-cache:.*"))
-        include(dependency("org.apache.httpcomponents:httpclient:.*"))
-        include(dependency("org.apache.httpcomponents:httpclient-cache:.*"))
-        include(dependency("org.apache.httpcomponents:httpcore:.*"))
-        include(dependency("org.apache.httpcomponents:httpcore-nio:.*"))
-        include(dependency("org.apache.httpcomponents:httpcore-mime:.*"))
-        include(dependency("org.glassfish.jersey.core:jersey-server:.*"))
-        include(dependency("org.glassfish.jersey.core:jersey-common:.*"))
         include(dependency("jakarta.ws.rs:jakarta.ws.rs-api:.*"))
         include(dependency("org.apache.tomcat:tomcat-annotations-api:.*"))
-        include(dependency("org.glassfish.hk2.external:jakarta.inject:.*"))
-        include(dependency("org.glassfish.hk2:osgi-resource-locator:.*"))
-        include(dependency("org.glassfish.jaxb:jaxb-runtime:.*"))
     }
 }
 
@@ -150,5 +168,4 @@ task assemblePlugins(type: Copy) {
     dependsOn subprojects.assemblePlugin
 }
 
-compileJava.dependsOn npm_run_build
-
+compileJava.dependsOn npm_run_build, generateJiraApi

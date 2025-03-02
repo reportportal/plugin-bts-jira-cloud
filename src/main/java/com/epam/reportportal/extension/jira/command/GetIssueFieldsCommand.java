@@ -15,40 +15,38 @@
  */
 package com.epam.reportportal.extension.jira.command;
 
-import com.atlassian.jira.rest.client.api.GetCreateIssueMetadataOptions;
-import com.atlassian.jira.rest.client.api.GetCreateIssueMetadataOptionsBuilder;
-import com.atlassian.jira.rest.client.api.JiraRestClient;
-import com.atlassian.jira.rest.client.api.domain.BasicComponent;
-import com.atlassian.jira.rest.client.api.domain.BasicPriority;
-import com.atlassian.jira.rest.client.api.domain.BasicProjectRole;
-import com.atlassian.jira.rest.client.api.domain.CimFieldInfo;
-import com.atlassian.jira.rest.client.api.domain.CimIssueType;
-import com.atlassian.jira.rest.client.api.domain.CimProject;
-import com.atlassian.jira.rest.client.api.domain.CustomFieldOption;
-import com.atlassian.jira.rest.client.api.domain.EntityHelper;
-import com.atlassian.jira.rest.client.api.domain.IssueFieldId;
-import com.atlassian.jira.rest.client.api.domain.IssueType;
-import com.atlassian.jira.rest.client.api.domain.Project;
-import com.atlassian.jira.rest.client.api.domain.ProjectRole;
-import com.atlassian.jira.rest.client.api.domain.Version;
+import static com.epam.reportportal.extension.jira.command.utils.IssueField.AFFECTS_VERSIONS_FIELD;
+import static com.epam.reportportal.extension.jira.command.utils.IssueField.ASSIGNEE_FIELD;
+import static com.epam.reportportal.extension.jira.command.utils.IssueField.COMPONENTS_FIELD;
+import static com.epam.reportportal.extension.jira.command.utils.IssueField.FIX_VERSIONS_FIELD;
+import static com.epam.reportportal.extension.jira.command.utils.IssueField.ISSUE_TYPE_FIELD;
+import static com.epam.reportportal.extension.jira.command.utils.IssueField.PRIORITY_FIELD;
+import static com.epam.reportportal.rules.exception.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
+
 import com.epam.reportportal.extension.ProjectManagerCommand;
+import com.epam.reportportal.extension.jira.api.model.IssueCreateMetadata;
+import com.epam.reportportal.extension.jira.api.model.IssueTypeDetails;
+import com.epam.reportportal.extension.jira.api.model.IssueTypeIssueCreateMetadata;
+import com.epam.reportportal.extension.jira.api.model.Project;
+import com.epam.reportportal.extension.jira.api.model.ProjectComponent;
+import com.epam.reportportal.extension.jira.api.model.ProjectIssueCreateMetadata;
+import com.epam.reportportal.extension.jira.api.model.Version;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
 import com.epam.reportportal.model.externalsystem.AllowedValue;
 import com.epam.reportportal.model.externalsystem.PostFormField;
-import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.commons.Preconditions;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,156 +56,139 @@ import org.slf4j.LoggerFactory;
  */
 public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormField>> {
 
-	private static final String ISSUE_TYPE = "issueType";
-	private static final Logger LOGGER = LoggerFactory.getLogger(GetIssueFieldsCommand.class);
+  public static final String ISSUE_TYPE = "issueType";
+  private static final Logger LOGGER = LoggerFactory.getLogger(GetIssueFieldsCommand.class);
 
-	private final CloudJiraClientProvider cloudJiraClientProvider;
+  private final CloudJiraClientProvider cloudJiraClientProvider;
 
-	public GetIssueFieldsCommand(ProjectRepository projectRepository, CloudJiraClientProvider cloudJiraClientProvider) {
-		super(projectRepository);
-		this.cloudJiraClientProvider = cloudJiraClientProvider;
-	}
+  public GetIssueFieldsCommand(ProjectRepository projectRepository, CloudJiraClientProvider cloudJiraClientProvider) {
+    super(projectRepository);
+    this.cloudJiraClientProvider = cloudJiraClientProvider;
+  }
 
-	@Override
-	public String getName() {
-		return "getIssueFields";
-	}
+  @Override
+  public String getName() {
+    return "getIssueFields";
+  }
 
-	@Override
-	protected List<PostFormField> invokeCommand(Integration integration, Map<String, Object> params) {
-		List<PostFormField> result = new ArrayList<>();
+  @Override
+  protected List<PostFormField> invokeCommand(Integration integration, Map<String, Object> params) {
+    List<PostFormField> result = new ArrayList<>();
 
-		final String issueTypeParam = Optional.ofNullable(params.get(ISSUE_TYPE))
-				.map(it -> (String) it)
-				.orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Issue type is not provided"));
+    final String issueTypeParam = Optional.ofNullable(params.get(ISSUE_TYPE))
+        .map(it -> (String) it)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Issue type is not provided"));
 
-		try (JiraRestClient client = cloudJiraClientProvider.get(integration.getParams())) {
+    try {
+      var client = cloudJiraClientProvider.getApiClient(integration.getParams());
+      var projectKey = CloudJiraProperties.PROJECT.getParam(integration.getParams())
+          .orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "Project is not specified."));
+      Project jiraProject = client.projectsApi().getProject(projectKey, null, null);
 
-			Project jiraProject = client.getProjectClient()
-					.getProject(CloudJiraProperties.PROJECT.getParam(integration.getParams())
-							.orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-									"Project is not specified."
-							)))
-					.claim();
+      IssueTypeDetails issueType = jiraProject.getIssueTypes().stream()
+          .filter(input -> issueTypeParam.equalsIgnoreCase(input.getName()))
+          .findFirst()
+          .orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "Issue type '" + issueTypeParam + "' not found"));
 
-			Optional<IssueType> issueType = StreamSupport.stream(jiraProject.getIssueTypes().spliterator(), false)
-					.filter(input -> issueTypeParam.equalsIgnoreCase(input.getName()))
-					.findFirst();
+      IssueCreateMetadata issueCreateMetadata = client.issuesApi().getCreateIssueMeta(
+          Collections.singletonList(jiraProject.getId()),
+          null,
+          Collections.singletonList(issueType.getId()),
+          null,
+          "projects.issuetypes.fields"
+      );
 
-			BusinessRule.expect(issueType, Preconditions.IS_PRESENT)
-					.verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Issue type '" + issueTypeParam + "' not found");
+      ProjectIssueCreateMetadata project = issueCreateMetadata.getProjects().get(0);
+      IssueTypeIssueCreateMetadata cimIssueType = project.getIssuetypes().get(0);
+      cimIssueType.getFields().entrySet().stream().forEach(issueField -> {
+        List<String> defValue = null;
+        String fieldID = issueField.getKey();
+        List<AllowedValue> allowed = new ArrayList<>();
+        String fieldName = issueField.getValue().getName();
+        if ("reporter".equalsIgnoreCase(fieldID)
+            || "project".equalsIgnoreCase(fieldID)
+            || "attachment".equalsIgnoreCase(fieldID)
+            || "timetracking".equalsIgnoreCase(fieldID)
+            || "Epic Link".equalsIgnoreCase(fieldName)
+            || "Sprint".equalsIgnoreCase(fieldName)) {
+          return;
+        }
 
-			GetCreateIssueMetadataOptions options = new GetCreateIssueMetadataOptionsBuilder().withExpandedIssueTypesFields()
-					.withProjectKeys(jiraProject.getKey())
-					.withIssueTypeIds(List.of(issueType.get().getId()))
-					.build();
-			Iterable<CimProject> projects = client.getIssueClient().getCreateIssueMetadata(options).claim();
-			CimProject project = projects.iterator().next();
-			CimIssueType cimIssueType = EntityHelper.findEntityById(project.getIssueTypes(), issueType.get().getId());
-			for (String key : cimIssueType.getFields().keySet()) {
-				List<String> defValue = null;
-				CimFieldInfo issueField = cimIssueType.getFields().get(key);
-				// Field ID for next JIRA POST ticket requests
-				String fieldID = issueField.getId();
-				String fieldType = issueField.getSchema().getType();
-				boolean isRequired = issueField.isRequired();
-				List<AllowedValue> allowed = new ArrayList<>();
-				String commandName = null;
+        String fieldType = issueField.getValue().getSchema().getType();
+        boolean isRequired = issueField.getValue().getRequired();
+        String commandName = null;
 
-				// Provide values for custom fields with predefined options
-				if (issueField.getAllowedValues() != null) {
-					for (Object o : issueField.getAllowedValues()) {
-						if (o instanceof CustomFieldOption) {
-							CustomFieldOption customField = (CustomFieldOption) o;
-							allowed.add(new AllowedValue(String.valueOf(customField.getId()), (customField).getValue()));
-						}
-					}
-				}
+        // Provide values for custom fields with predefined options
+        if (issueField.getValue().getAllowedValues() != null) {
+          allowed = issueField.getValue().getAllowedValues().stream()
+            .map(value -> (JsonNode) new ObjectMapper().valueToTree(value))
+            .filter(this::isCustomField)
+            .map(jn -> new AllowedValue(jn.get("id").asText(), jn.get("value").asText()))
+            .collect(Collectors.toList());
+        }
 
-				// Field NAME for user friendly UI output (for UI only)
-				String fieldName = issueField.getName();
+        if (fieldID.equalsIgnoreCase(COMPONENTS_FIELD.getValue())) {
+          for (ProjectComponent component : jiraProject.getComponents()) {
+            allowed.add(new AllowedValue(component.getId(), component.getName()));
+          }
+        }
+        if (fieldID.equalsIgnoreCase(FIX_VERSIONS_FIELD.getValue())) {
+          for (Version version : jiraProject.getVersions()) {
+            allowed.add(new AllowedValue(version.getId(), version.getName()));
+          }
+        }
+        if (fieldID.equalsIgnoreCase(AFFECTS_VERSIONS_FIELD.getValue())) {
+          for (Version version : jiraProject.getVersions()) {
+            allowed.add(new AllowedValue(version.getId(), version.getName()));
+          }
+        }
+        if (fieldID.equalsIgnoreCase(PRIORITY_FIELD.getValue()) && issueField.getKey().equals(PRIORITY_FIELD.name())) {
+          allowed.add(new AllowedValue(issueField.getValue().getKey(), issueField.getValue().getName()));
 
-				if (fieldID.equalsIgnoreCase(IssueFieldId.COMPONENTS_FIELD.id)) {
-					for (BasicComponent component : jiraProject.getComponents()) {
-						allowed.add(new AllowedValue(String.valueOf(component.getId()), component.getName()));
-					}
-				}
-				if (fieldID.equalsIgnoreCase(IssueFieldId.FIX_VERSIONS_FIELD.id)) {
-					for (Version version : jiraProject.getVersions()) {
-						allowed.add(new AllowedValue(String.valueOf(version.getId()), version.getName()));
-					}
-				}
-				if (fieldID.equalsIgnoreCase(IssueFieldId.AFFECTS_VERSIONS_FIELD.id)) {
-					for (Version version : jiraProject.getVersions()) {
-						allowed.add(new AllowedValue(String.valueOf(version.getId()), version.getName()));
-					}
-				}
-				if (fieldID.equalsIgnoreCase(IssueFieldId.PRIORITY_FIELD.id)) {
-					if (null != cimIssueType.getField(IssueFieldId.PRIORITY_FIELD)) {
-						Iterable<Object> allowedValuesForPriority = cimIssueType.getField(IssueFieldId.PRIORITY_FIELD).getAllowedValues();
-						for (Object singlePriority : allowedValuesForPriority) {
-							BasicPriority priority = (BasicPriority) singlePriority;
-							allowed.add(new AllowedValue(String.valueOf(priority.getId()), priority.getName()));
-						}
-					}
-				}
-				if (fieldID.equalsIgnoreCase(IssueFieldId.ISSUE_TYPE_FIELD.id)) {
-					isRequired = true;
-					defValue = Collections.singletonList(issueTypeParam);
-				}
-				if (fieldID.equalsIgnoreCase(IssueFieldId.ASSIGNEE_FIELD.id)) {
-					allowed = getJiraProjectAssignee(jiraProject);
-					commandName = "searchUsers";
-				}
+        }
+        if (fieldID.equalsIgnoreCase(ISSUE_TYPE_FIELD.getValue())) {
+          isRequired = true;
+          defValue = Collections.singletonList(issueTypeParam);
+        }
+        if (fieldID.equalsIgnoreCase(ASSIGNEE_FIELD.getValue())) {
+          allowed = getJiraProjectAssignee(jiraProject);
+          commandName = "searchUsers";
+        }
 
-				//@formatter:off
-				// Skip reporter as it is resolved from credentials
-				// Skip project field as external from list
-				// Skip attachment cause we are not providing this functionality now
-				// Skip timetracking field cause complexity. There are two fields with Original Estimation and Remaining Estimation.
-				// Skip Story Link as greenhopper plugin field.
-				// Skip Sprint field as complex one.
-				//@formatter:on
-				if ("reporter".equalsIgnoreCase(fieldID) || "project".equalsIgnoreCase(fieldID) || "attachment".equalsIgnoreCase(fieldID)
-						|| "timetracking".equalsIgnoreCase(fieldID) || "Epic Link".equalsIgnoreCase(fieldName) || "Sprint".equalsIgnoreCase(
-						fieldName)) {
-					continue;
-				}
+        PostFormField postForm = new PostFormField(fieldID, fieldName, fieldType, isRequired, defValue, allowed);
+        if (StringUtils.isNotEmpty(commandName)) {
+          postForm.setCommandName(commandName);
+        }
+        result.add(postForm);
+      });
 
-				PostFormField postForm = new PostFormField(fieldID, fieldName, fieldType, isRequired, defValue,
-						allowed);
-				if (StringUtils.isNotEmpty(commandName)) {
-					postForm.setCommandName(commandName);
-				}
-				result.add(postForm);
-			}
-			return result;
-		} catch (Exception e) {
-			LOGGER.error(e.getMessage(), e);
-			return new ArrayList<>();
-		}
-	}
+      return result;
+    } catch (Exception e) {
+      LOGGER.error(e.getMessage(), e);
+      return new ArrayList<>();
+    }
+  }
 
-	/**
-	 * Get list of project users available for assignee field
-	 *
-	 * @param jiraProject Project from JIRA
-	 * @return List of allowed values
-	 */
-	private List<AllowedValue> getJiraProjectAssignee(Project jiraProject) {
-		Iterable<BasicProjectRole> jiraProjectRoles = jiraProject.getProjectRoles();
-		try {
-			return StreamSupport.stream(jiraProjectRoles.spliterator(), false)
-					.filter(role -> role instanceof ProjectRole)
-					.map(role -> (ProjectRole) role)
-					.flatMap(role -> StreamSupport.stream(role.getActors().spliterator(), false))
-					.distinct()
-					.map(actor -> new AllowedValue(String.valueOf(actor.getId()), actor.getDisplayName()))
-					.collect(Collectors.toList());
-		} catch (Exception e) {
-			LOGGER.error(e.getMessage(), e);
-			throw new ReportPortalException("There is a problem while getting issue types", e);
-		}
+  private boolean isCustomField(JsonNode allowedValue) {
+    return allowedValue.get("self").asText().contains("/customFieldOption/");
+  }
 
-	}
+  /**
+   * Get list of project users available for assignee field
+   *
+   * @param jiraProject Project from JIRA
+   * @return List of allowed values
+   */
+  private List<AllowedValue> getJiraProjectAssignee(Project jiraProject) {
+    try {
+      return jiraProject.getRoles().entrySet().stream()
+          .map(roleEntry -> new AllowedValue(roleEntry.getKey(), roleEntry.getValue().toString()))
+          .toList();
+    } catch (Exception e) {
+      LOGGER.error(e.getMessage(), e);
+      throw new ReportPortalException("There is a problem while getting issue types", e);
+    }
+
+  }
+
 }

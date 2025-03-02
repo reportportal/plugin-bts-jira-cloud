@@ -18,27 +18,6 @@ package com.epam.reportportal.extension.jira.dto;
 /**
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
-public class UserDto {
+public record UserDto(String accountId, String username) {
 
-  private String id;
-  private String name;
-
-  public UserDto() {
-  }
-
-  public String getId() {
-    return id;
-  }
-
-  public void setId(String id) {
-    this.id = id;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
 }
