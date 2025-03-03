@@ -33,6 +33,7 @@ import com.epam.reportportal.extension.jira.api.model.ProjectIssueCreateMetadata
 import com.epam.reportportal.extension.jira.api.model.Version;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
+import com.epam.reportportal.extension.jira.command.utils.JIRATicketUtils;
 import com.epam.reportportal.model.externalsystem.AllowedValue;
 import com.epam.reportportal.model.externalsystem.PostFormField;
 import com.epam.reportportal.rules.exception.ErrorType;
@@ -122,7 +123,7 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
         if (issueField.getValue().getAllowedValues() != null) {
           allowed = issueField.getValue().getAllowedValues().stream()
             .map(value -> (JsonNode) new ObjectMapper().valueToTree(value))
-            .filter(this::isCustomField)
+            .filter(JIRATicketUtils::isCustomField)
             .map(jn -> new AllowedValue(jn.get("id").asText(), jn.get("value").asText()))
             .collect(Collectors.toList());
         }
@@ -169,9 +170,7 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
     }
   }
 
-  private boolean isCustomField(JsonNode allowedValue) {
-    return allowedValue.get("self").asText().contains("/customFieldOption/");
-  }
+
 
   /**
    * Get list of project users available for assignee field

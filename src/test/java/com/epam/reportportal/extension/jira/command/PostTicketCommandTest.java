@@ -1,3 +1,19 @@
+/*
+ * Copyright 2025 EPAM Systems
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.epam.reportportal.extension.jira.command;
 
 import static com.epam.reportportal.extension.jira.command.GetIssueFieldsCommand.ISSUE_TYPE;
@@ -6,6 +22,8 @@ import static com.epam.reportportal.extension.jira.command.utils.CloudJiraProper
 import static com.epam.reportportal.extension.jira.utils.SampleData.EPIC;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.extension.jira.command.utils.JIRATicketDescriptionService;
@@ -18,9 +36,11 @@ import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
@@ -28,6 +48,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
 
 
+@Slf4j
 class PostTicketCommandTest extends BaseCommandTest {
 
   ObjectMapper objectMapper = new ObjectMapper();
@@ -44,7 +65,7 @@ class PostTicketCommandTest extends BaseCommandTest {
   @CsvSource(value = {
       "Epic"
   })
-  void postTicketCommand(String issueType) throws JsonProcessingException {
+  void postTicketCommand(String issueType) throws JsonProcessingException, FileNotFoundException {
     if (disabled()) {
       return;
     }
@@ -58,6 +79,9 @@ class PostTicketCommandTest extends BaseCommandTest {
     params.put(URL.getName(), URL.getParam(INTEGRATION.getParams()));
     params.put(ISSUE_TYPE, issueType);
     params.put("entity", entity);
+
+    lenient().when(dataStoreService.load(anyString()))
+        .thenReturn(Optional.of(getClass().getClassLoader().getResourceAsStream("attachment.txt")));
 
     var command = new PostTicketCommand(projectRepository, requestEntityConverter, cloudJiraClientProvider,
         new JIRATicketDescriptionService(logRepository, itemRepository), dataStoreService);
@@ -78,7 +102,9 @@ class PostTicketCommandTest extends BaseCommandTest {
         .build();
 
     var jiraTicket = restTemplate.getForObject(ticket.getTicketUrl(), String.class);
-
+    log.info(ticket.getTicketUrl());
     // TODO: make required checks with jira ticket
   }
+
 }
+

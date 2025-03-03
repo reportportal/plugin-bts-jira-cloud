@@ -16,6 +16,7 @@
 
 package com.epam.reportportal.extension.jira.command;
 
+import static com.epam.reportportal.extension.jira.command.utils.JIRATicketUtils.getAuthorizationHeader;
 import static com.epam.reportportal.extension.util.CommandParamUtils.ENTITY_PARAM;
 import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
@@ -29,8 +30,10 @@ import static java.util.stream.Collectors.toSet;
 import com.epam.reportportal.extension.ProjectMemberCommand;
 import com.epam.reportportal.extension.jira.api.model.CreatedIssue;
 import com.epam.reportportal.extension.jira.api.model.IssueBean;
+import com.epam.reportportal.extension.jira.api.model.IssueLinkType;
 import com.epam.reportportal.extension.jira.api.model.IssueTypeDetails;
 import com.epam.reportportal.extension.jira.api.model.IssueUpdateDetails;
+import com.epam.reportportal.extension.jira.api.model.LinkIssueRequestJsonBean;
 import com.epam.reportportal.extension.jira.api.model.ProjectComponent;
 import com.epam.reportportal.extension.jira.api.model.SearchResults;
 import com.epam.reportportal.extension.jira.client.JiraRestClient;
@@ -49,6 +52,8 @@ import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +61,18 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.hc.client5.http.classic.HttpClient;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpResponse;
+import org.springframework.util.Assert;
+import org.springframework.web.client.RestClientException;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -131,10 +147,9 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
             .map(ProjectComponent::getName)
             .collect(toSet());
 
-        // FIXME : compares with it self by mistake
+        // FIXME : compares with itself by mistake
         validComponents.forEach(component -> expect(component, in(validComponents))
-            .verify(UNABLE_INTERACT_WITH_INTEGRATION, formattedSupplier("Component '{}' not exists in the external system", component)
-            ));
+            .verify(UNABLE_INTERACT_WITH_INTEGRATION, formattedSupplier("Component '{}' not exists in the external system", component)));
       }
 
       // TODO consider to modify code below - project cached
@@ -146,7 +161,7 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
 
       IssueUpdateDetails issueRequest = JIRATicketUtils.toIssueInput(client, jiraProject, projectIssueType, ticketRQ, descriptionService);
 
-      //Map<String, String> binaryData = findBinaryData(issueRequest);
+      Map<String, String> binaryData = findBinaryData(issueRequest);
 
       /*
        * Claim because we want to be sure everything is OK
@@ -156,22 +171,14 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
 
       // post binary data
       IssueBean issue = client.issuesApi().getIssue(issueKey, null, false, null, null, false, false);
-      /* client.issueAttachmentsApi().getApiClient().addAttachment(issueKey);
-      List<Attachment> attachments = new ArrayList<>();
-      AttachmentInput[] attachmentInputs = new AttachmentInput[binaryData.size()];
-      int counter = 0;
       for (Map.Entry<String, String> binaryDataEntry : binaryData.entrySet()) {
         Optional<InputStream> data = dataStoreService.load(binaryDataEntry.getKey());
         if (data.isPresent()) {
-          attachmentInputs[counter] = new Attachment(binaryDataEntry.getValue(), data.get());
-          counter++;
+          binaryDataEntry.getValue();
+          addAttachment(issueKey, integration, data.get());
         }
-      }*/
-      /* if (counter != 0) {
-        clientOld.getIssueClient()
-            .addAttachments(issue.getAttachmentsUri(), Arrays.copyOf(attachmentInputs, counter))
-            .claim();
-      }*/
+      }
+
       if (linkedIssue != null) {
         linkIssues(client, issue, linkedIssue);
       }
@@ -233,13 +240,36 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
   }
 
   private void linkIssues(JiraRestClient jiraRestClient, IssueBean issue, PostFormField field) {
-/*    String value = CollectionUtils.isNotEmpty(field.getValue()) ? field.getValue().get(0) : "";
+    String value = CollectionUtils.isNotEmpty(field.getValue()) ? field.getValue().get(0) : "";
     if (StringUtils.isNotEmpty(value)) {
-      String[] s = value.split(" ");
-      for (String v : s) {
-        LinkIssuesInput linkIssuesInput = new LinkIssuesInput(issue.getKey(), v, LINKED_ISSUE_TYPE);
-        jiraRestClient.issuesApi().linkIssue(linkIssuesInput).claim();
+      String[] issues = value.split(" ");
+      for (String issueKey : issues) {
+        var issueToLink = new IssueLinkType()
+            .inward(issueKey)
+            .outward(issue.getKey())
+            .name(LINKED_ISSUE_TYPE);
+
+        LinkIssueRequestJsonBean linkIssuesInput = new LinkIssueRequestJsonBean(null, null, null, issueToLink);
+        jiraRestClient.issueLinksApi().linkIssues(linkIssuesInput);
       }
-    }*/
+    }
+  }
+
+  @SneakyThrows
+  public void addAttachment(String issueKey, Integration integration, InputStream data) throws RestClientException {
+    var details = cloudJiraClientProvider.extractAndDecryptDetails(integration.getParams());
+
+    MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create()
+        .setLaxMode()
+        .setCharset(StandardCharsets.UTF_8)
+        .addBinaryBody("file", data.readAllBytes(), ContentType.DEFAULT_BINARY, "attachment.txt");
+
+    HttpPost request = new HttpPost(details.url() + String.format("/rest/api/3/issue/%s/attachments", issueKey));
+    request.setEntity(entityBuilder.build());
+    request.setHeader("X-Atlassian-Token", "no-check");
+    request.setHeader("Authorization", "Basic " + getAuthorizationHeader(details.username(), details.credentials()));
+    HttpClient client = HttpClientBuilder.create().build();
+    HttpResponse response = client.execute(request);
+    Assert.isTrue(response.getCode() == 200, "Failed to upload attachment");
   }
 }

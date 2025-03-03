@@ -28,7 +28,6 @@ import com.epam.ta.reportportal.dao.IntegrationRepository;
 import com.epam.ta.reportportal.dao.TicketRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
-import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.collections4.CollectionUtils;

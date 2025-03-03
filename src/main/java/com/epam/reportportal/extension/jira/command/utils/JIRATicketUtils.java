@@ -37,7 +37,9 @@ import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -45,6 +47,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Getter;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -164,34 +167,32 @@ public class JIRATicketUtils {
       // Arrays and fields with 'allowedValues' handler
       if (cimFieldInfo != null) {
         try {
-          //  List<ComplexIssueInputFieldValue> arrayOfValues = Lists.newArrayList();
+          List<Object> arrayOfValues = new ArrayList<>();
           for (Object o : cimFieldInfo.getAllowedValues()) {
-/*            if (o instanceof CustomFieldOption) {
-              CustomFieldOption cfo = (CustomFieldOption) o;
-              if (one.getValue().contains(cfo.getValue())) {
-                arrayOfValues.add(
-                    ComplexIssueInputFieldValue.with("id", String.valueOf(cfo.getId())));
-              }
-            }*/
+            JsonNode jn = new ObjectMapper().valueToTree(o);
+            if (isCustomField(jn) && one.getValue().contains(jn.get("value").asText())) {
+              issueUpdateDetails.putFieldsItem(ASSIGNEE_FIELD.getValue(), Map.entry("id", one.getValue().get(0)));
+              arrayOfValues.add(Map.entry("id", jn.get("id").asText()));
+            }
           }
           if (one.getFieldType().equalsIgnoreCase(IssueFieldType.ARRAY.name)) {
-            //     issueInputBuilder.setFieldValue(one.getId(), arrayOfValues);
+            issueUpdateDetails.putFieldsItem(one.getId(), arrayOfValues);
           } else {
-            //       issueInputBuilder.setFieldValue(one.getId(), arrayOfValues.get(0));
+            issueUpdateDetails.putFieldsItem(one.getId(), arrayOfValues.get(0));
           }
         } catch (Exception e) {
           LOGGER.error(e.getMessage(), e);
-          //      issueInputBuilder.setFieldValue(one.getId(), "ReportPortal autofield");
+          issueUpdateDetails.putFieldsItem(one.getId(), "ReportPortal autofield");
         }
       } else {
         if (one.getFieldType().equalsIgnoreCase(IssueFieldType.ARRAY.name)) {
           if (one.getId().equalsIgnoreCase(IssueField.LABELS_FIELD.value)) {
-            //          issueInputBuilder.setFieldValue(one.getId(), processLabels(one.getValue().get(0)));
+            issueUpdateDetails.putFieldsItem(one.getId(), processLabels(one.getValue().get(0)));
           } else {
-            //           issueInputBuilder.setFieldValue(one.getId(), one.getValue());
+            issueUpdateDetails.putFieldsItem(one.getId(), one.getValue());
           }
         } else if (one.getFieldType().equalsIgnoreCase(IssueFieldType.NUMBER.name)) {
-          //     issueInputBuilder.setFieldValue(one.getId(), Long.valueOf(one.getValue().get(0)));
+          issueUpdateDetails.putFieldsItem(one.getId(), Long.valueOf(one.getValue().get(0)));
         } else if (one.getFieldType().equalsIgnoreCase(IssueFieldType.USER.name)) {
           if (!one.getValue().get(0).equals("")) {
             // TODO create user cache (like for projects) for JIRA
@@ -268,5 +269,16 @@ public class JIRATicketUtils {
       trimmed = str.substring(0, str.length() - suffix.length());
     }
     return trimmed;
+  }
+
+  public static boolean isCustomField(JsonNode allowedValue) {
+    return allowedValue.get("self").asText().contains("/customFieldOption/");
+  }
+
+
+  public static String getAuthorizationHeader(String user, String password) {
+    String plainCreds = user + ":" + password;
+    byte[] base64CredsBytes = Base64.encodeBase64(plainCreds.getBytes(StandardCharsets.UTF_8));
+    return new String(base64CredsBytes);
   }
 }

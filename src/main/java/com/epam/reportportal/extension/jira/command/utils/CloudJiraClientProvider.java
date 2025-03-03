@@ -43,7 +43,7 @@ public class CloudJiraClientProvider {
   }
 
 
-  private CloudJiraDetails extractAndDecryptDetails(IntegrationParams integrationParams) {
+  public CloudJiraDetails extractAndDecryptDetails(IntegrationParams integrationParams) {
     String providedUsername = getTextParamOrThrow(CloudJiraProperties.EMAIL, integrationParams, USER_EMAIL_NOT_SPECIFIED);
     String credentials = textEncryptor.decrypt(getTextParamOrThrow(CloudJiraProperties.API_TOKEN, integrationParams, API_TOKEN_NOT_SPECIFIED));
     String url = getTextParamOrThrow(CloudJiraProperties.URL, integrationParams, URL_NOT_SPECIFIED);
