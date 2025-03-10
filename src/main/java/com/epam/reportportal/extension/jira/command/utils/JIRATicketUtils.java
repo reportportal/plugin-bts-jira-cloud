@@ -165,19 +165,17 @@ public class JIRATicketUtils {
 
       var cimFieldInfo = cimIssueType.getFirst().getFields().get(one.getId());
       // Arrays and fields with 'allowedValues' handler
-      if (cimFieldInfo != null) {
+      if (cimFieldInfo.getAllowedValues() != null) {
         try {
           List<Object> arrayOfValues = new ArrayList<>();
-          if (cimFieldInfo.getAllowedValues() != null) {
-            for (Object o : new ArrayList<>(cimFieldInfo.getAllowedValues())) {
-              JsonNode jn = new ObjectMapper().valueToTree(o);
-              if (isCustomField(jn) && one.getValue().contains(jn.get("value").asText())) {
-                arrayOfValues.add(Map.entry("id", jn.get("id").asText()));
-              }
+          for (Object o : new ArrayList<>(cimFieldInfo.getAllowedValues())) {
+            JsonNode jn = new ObjectMapper().valueToTree(o);
+            if (isCustomField(jn) && one.getValue().contains(jn.get("value").asText())) {
+              arrayOfValues.add(Map.entry("id", jn.get("id").asText()));
             }
           }
           if (one.getFieldType().equalsIgnoreCase(IssueFieldType.ARRAY.name)) {
-            processArrayValue(issueUpdateDetails, cimFieldInfo, one, arrayOfValues);
+            issueUpdateDetails.putFieldsItem(one.getId(), arrayOfValues);
           } else {
             issueUpdateDetails.putFieldsItem(one.getId(), arrayOfValues.get(0));
           }
@@ -187,14 +185,14 @@ public class JIRATicketUtils {
         }
       } else {
         if (one.getFieldType().equalsIgnoreCase(IssueFieldType.ARRAY.name)) {
-          if (one.getId().equalsIgnoreCase(IssueField.LABELS_FIELD.getValue())) {
+          if (isLabelField(one, cimFieldInfo)) {
             issueUpdateDetails.putFieldsItem(one.getId(), processLabels(one.getValue().get(0)));
           } else {
             issueUpdateDetails.putFieldsItem(one.getId(), one.getValue());
           }
-        } else if (one.getFieldType().equalsIgnoreCase(IssueFieldType.NUMBER.name)) {
+        } else if (one.getFieldType().equalsIgnoreCase(IssueFieldType.NUMBER.getName())) {
           issueUpdateDetails.putFieldsItem(one.getId(), Long.valueOf(one.getValue().get(0)));
-        } else if (one.getFieldType().equalsIgnoreCase(IssueFieldType.USER.name)) {
+        } else if (one.getFieldType().equalsIgnoreCase(IssueFieldType.USER.getName())) {
           if (!one.getValue().get(0).equals("")) {
             // TODO create user cache (like for projects) for JIRA
             // 'user' type fields
@@ -226,11 +224,19 @@ public class JIRATicketUtils {
     return issueUpdateDetails;
   }
 
+  private static boolean isLabelField(PostFormField one, FieldMetadata cimFieldInfo) {
+    return (cimFieldInfo.getSchema() != null && cimFieldInfo.getSchema().getCustom() != null
+        && (cimFieldInfo.getSchema().getCustom().equals("com.atlassian.jira.plugin.system.customfieldtypes:labels")))
+        || one.getId().equalsIgnoreCase(IssueField.LABELS_FIELD.getValue());
+  }
+
   private static void processArrayValue(IssueUpdateDetails issueUpdateDetails, FieldMetadata cimFieldInfo, PostFormField one,
       List<Object> arrayOfValues) {
     if (cimFieldInfo.getSchema() != null
         && cimFieldInfo.getSchema().getCustom() != null
-        && cimFieldInfo.getSchema().getCustom().equals("com.atlassian.jira.plugin.system.customfieldtypes:labels")) {
+        && (cimFieldInfo.getSchema().getCustom().equals("com.atlassian.jira.plugin.system.customfieldtypes:labels")
+        || one.getId().equalsIgnoreCase(IssueField.LABELS_FIELD.getValue()))
+    ) {
       issueUpdateDetails.putFieldsItem(one.getId(), processLabels(one.getValue().get(0)));
     } else {
       issueUpdateDetails.putFieldsItem(one.getId(), arrayOfValues);

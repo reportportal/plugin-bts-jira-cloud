@@ -39,24 +39,14 @@ public class SampleData {
     return log;
   }
 
-  public static final String EPIC = """
-            {
+  public static String BUG = """
+                {
         "includeComments": true,
         "includeData": true,
         "includeLogs": true,
         "logQuantity": 50,
-        "item": 4713343083,
+        "item": 344491,
         "fields": [
-          {
-            "id": "issuetype",
-            "value": [
-              "Epic"
-            ],
-            "required": true,
-            "fieldName": "Issue Type",
-            "fieldType": "issuetype",
-            "definedValues": []
-          },
           {
             "id": "summary",
             "required": true,
@@ -64,33 +54,8 @@ public class SampleData {
             "fieldType": "string",
             "definedValues": [],
             "value": [
-              "Test by Oleg"
+              "New summary"
             ]
-          }
-        ],
-        "backLinks": {
-          "4713343083": "https://reportportal.epam.com/ui/#epm-rpp/launches/all/8636133/4713341992/4713343083/log?item0Params=filter.eq.hasStats%3Dtrue%26filter.eq.hasChildren%3Dfalse%26filter.in.issueType%3Dti001%252Cti_qdpzzqt1yulh%252Cti_qhqltb6q9y5y%252Cti_vb94w7l7xlpu%252Cti_skk1lqxyxfsi"
-        }
-      }
-      """;
-
-  public static String STORY = """
-              {
-        "includeComments": true,
-        "includeData": true,
-        "includeLogs": true,
-        "logQuantity": 50,
-        "item": 1678,
-        "fields": [
-          {
-            "id": "summary",
-            "value": [
-              "Test"
-            ],
-            "required": true,
-            "fieldName": "Summary",
-            "fieldType": "string",
-            "definedValues": []
           },
           {
             "id": "issuetype",
@@ -104,13 +69,162 @@ public class SampleData {
             "disabled": true
           },
           {
+            "id": "parent",
+            "required": false,
+            "fieldName": "Parent",
+            "fieldType": "issuelink",
+            "definedValues": [],
+            "value": [
+              "EPMRPP-419"
+            ]
+          },
+          {
+            "id": "description",
+            "required": false,
+            "fieldName": "Description",
+            "fieldType": "string",
+            "definedValues": [],
+            "value": [
+              "New description"
+            ]
+          },
+          {
+            "id": "customfield_10031",
+            "required": false,
+            "fieldName": "Custom field",
+            "fieldType": "string",
+            "definedValues": [],
+            "value": [
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
+            ]
+          },
+          {
+            "id": "customfield_10032",
+            "required": false,
+            "fieldName": "New field",
+            "fieldType": "string",
+            "definedValues": [],
+            "value": [
+              "Lorem ipsum dolor sit amet, consectetur adipiscing elit"
+            ]
+          },
+          {
+            "id": "customfield_10021",
+            "required": false,
+            "fieldName": "Flagged",
+            "fieldType": "array",
+            "definedValues": [
+              {
+                "valueId": "10019",
+                "valueName": "Impediment"
+              }
+            ],
+            "value": []
+          },
+          {
+            "id": "customfield_10043",
+            "required": false,
+            "fieldName": "Design",
+            "fieldType": "array",
+            "definedValues": [],
+            "value": [
+              "new design"
+            ]
+          },
+          {
+            "id": "customfield_10000",
+            "required": false,
+            "fieldName": "Development",
+            "fieldType": "any",
+            "definedValues": [],
+            "value": [
+              "hello development team"
+            ]
+          },
+          {
+            "id": "customfield_10044",
+            "required": false,
+            "fieldName": "Vulnerability",
+            "fieldType": "any",
+            "definedValues": [],
+            "value": [
+              "Critical vulnerability "
+            ]
+          },
+          {
+            "id": "customfield_10045",
+            "value": [
+              "Critical"
+            ],
+            "required": false,
+            "fieldName": "Severity",
+            "fieldType": "option",
+            "definedValues": [
+              {
+                "valueId": "None",
+                "valueName": "None"
+              },
+              {
+                "valueId": "10021",
+                "valueName": "Critical"
+              },
+              {
+                "valueId": "10022",
+                "valueName": "Major"
+              },
+              {
+                "valueId": "10023",
+                "valueName": "Minor"
+              },
+              {
+                "valueId": "10024",
+                "valueName": "Trivial"
+              },
+              {
+                "valueId": "10028",
+                "valueName": "New option"
+              },
+              {
+                "valueId": "10033",
+                "valueName": "New option 2"
+              },
+              {
+                "valueId": "10035",
+                "valueName": "New option 3"
+              }
+            ]
+          },
+          {
+            "id": "customfield_10046",
+            "value": [
+              "Option 2"
+            ],
+            "required": false,
+            "fieldName": "Priority",
+            "fieldType": "option",
+            "definedValues": [
+              {
+                "valueId": "None",
+                "valueName": "None"
+              },
+              {
+                "valueId": "10026",
+                "valueName": "Option 1"
+              },
+              {
+                "valueId": "10027",
+                "valueName": "Option 2"
+              }
+            ]
+          },
+          {
             "id": "customfield_10047",
             "required": false,
             "fieldName": "Affected version from Helen",
             "fieldType": "array",
             "definedValues": [],
             "value": [
-              "1234"
+              "25.1 25.2"
             ]
           },
           {
@@ -120,161 +234,53 @@ public class SampleData {
             "fieldType": "array",
             "definedValues": [],
             "value": [
-              " 56 78"
+              "new label"
+            ]
+          },
+          {
+            "id": "customfield_10016",
+            "required": false,
+            "fieldName": "Story point estimate",
+            "fieldType": "number",
+            "definedValues": [],
+            "value": [
+              "8"
+            ]
+          },
+          {
+            "id": "customfield_10019",
+            "required": false,
+            "fieldName": "Rank",
+            "fieldType": "any",
+            "definedValues": [],
+            "value": []
+          },
+          {
+            "id": "issuelinks",
+            "required": false,
+            "fieldName": "Linked Issues",
+            "fieldType": "array",
+            "definedValues": [],
+            "value": [
+              "EPMRPP-500 EPMRPP-510 EPMRPP-511"
+            ]
+          },
+          {
+            "id": "assignee",
+            "required": false,
+            "fieldName": "Assignee",
+            "fieldType": "user",
+            "commandName": "searchUsers",
+            "definedValues": [],
+            "value": [
+              "5e4430904d2a000c9113b8c3"
             ]
           }
         ],
-         "backLinks":
-           {
-            "1678":"https://localhost:8080/ui/#superadmin_personal/launches/all/297/1677/1678/1679/log?item2Params=filter.eq.hasStats%3Dtrue%26filter.eq.hasChildren%3Dfalse%26filter.in.issueType%3Dab001"
-           }
-      
-      }
-      """;
-
-  public static String BUG = """
-           {
-        "includeComments": true,
-        "includeData": true,
-        "includeLogs": true,
-        "logQuantity": 50,
-        "item": 336474,
-        "fields": [
-            {
-                "id": "summary",
-                "required": true,
-                "fieldName": "Summary",
-                "fieldType": "string",
-                "definedValues": [],
-                "value": [
-                    "Test"
-                ]
-            },
-            {
-                "id": "issuetype",
-                "value": [
-                    "Bug"
-                ],
-                "required": true,
-                "fieldName": "Issue Type",
-                "fieldType": "issuetype",
-                "definedValues": [],
-                "disabled": true
-            },
-            {
-                "id": "parent",
-                "required": false,
-                "fieldName": "Parent",
-                "fieldType": "issuelink",
-                "definedValues": [],
-                "value": [
-                    "EPMRPP-419"
-                ]
-            },
-            {
-                "id": "customfield_10045",
-                "value": [
-                    "Major"
-                ],
-                "required": false,
-                "fieldName": "Severity",
-                "fieldType": "option",
-                "definedValues": [
-                    {
-                        "valueId": "None",
-                        "valueName": "None"
-                    },
-                    {
-                        "valueId": "10021",
-                        "valueName": "Critical"
-                    },
-                    {
-                        "valueId": "10022",
-                        "valueName": "Major"
-                    },
-                    {
-                        "valueId": "10023",
-                        "valueName": "Minor"
-                    },
-                    {
-                        "valueId": "10024",
-                        "valueName": "Trivial"
-                    },
-                    {
-                        "valueId": "10028",
-                        "valueName": "New option"
-                    },
-                    {
-                        "valueId": "10033",
-                        "valueName": "New option 2"
-                    },
-                    {
-                        "valueId": "10035",
-                        "valueName": "New option 3"
-                    }
-                ]
-            },
-            {
-                "id": "customfield_10046",
-                "value": [
-                    "Option 2"
-                ],
-                "required": false,
-                "fieldName": "Priority",
-                "fieldType": "option",
-                "definedValues": [
-                    {
-                        "valueId": "None",
-                        "valueName": "None"
-                    },
-                    {
-                        "valueId": "10026",
-                        "valueName": "Option 1"
-                    },
-                    {
-                        "valueId": "10027",
-                        "valueName": "Option 2"
-                    }
-                ]
-            },
-            {
-                "id": "customfield_10047",
-                "required": false,
-                "fieldName": "Affected version from Helen",
-                "fieldType": "array",
-                "definedValues": [],
-                "value": [
-                    "test custom field"
-                ]
-            },
-            {
-                "id": "issuelinks",
-                "required": false,
-                "fieldName": "Linked Issues",
-                "fieldType": "array",
-                "definedValues": [],
-                "value": [
-                    "EPMRPP-449"
-                ]
-            },
-            {
-                "id": "assignee",
-                "value": [
-                    "557058:8eac799c-d542-4ae7-a0d5-45f3bcd9a97a"
-                ],
-                "required": false,
-                "fieldName": "Assignee",
-                "fieldType": "user",
-                "commandName": "searchUsers",
-                "definedValues": []
-            }
-        ],
         "backLinks": {
-            "336474": "http://dev.epmrpp.reportportal.io/ui/?#helen/launches/all/88800/336472/336473/336474/log?item0Params=filter.eq.hasStats%3Dtrue%26filter.eq.hasChildren%3Dfalse%26filter.in.type%3DSTEP%26filter.in.status%3DFAILED%252CINTERRUPTED"
+          "344491": "http://dev.epmrpp.reportportal.io/ui/#helen/launches/all/89493/344489/344490/344491/log?item0Params=filter.eq.hasStats%3Dtrue%26filter.eq.hasChildren%3Dfalse%26filter.in.type%3DSTEP%26filter.in.status%3DFAILED%252CINTERRUPTED"
         }
-    }
-
-
+      }
       """;
 
 }
