@@ -34,6 +34,7 @@ import com.epam.reportportal.extension.jira.api.model.IssueLinkType;
 import com.epam.reportportal.extension.jira.api.model.IssueTypeDetails;
 import com.epam.reportportal.extension.jira.api.model.IssueUpdateDetails;
 import com.epam.reportportal.extension.jira.api.model.LinkIssueRequestJsonBean;
+import com.epam.reportportal.extension.jira.api.model.LinkedIssue;
 import com.epam.reportportal.extension.jira.api.model.ProjectComponent;
 import com.epam.reportportal.extension.jira.api.model.SearchResults;
 import com.epam.reportportal.extension.jira.client.JiraRestClient;
@@ -161,22 +162,19 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
 
       IssueUpdateDetails issueRequest = JIRATicketUtils.toIssueInput(client, jiraProject, projectIssueType, ticketRQ, descriptionService);
 
-      Map<String, String> binaryData = findBinaryData(issueRequest);
 
       /*
        * Claim because we want to be sure everything is OK
        */
       CreatedIssue createdIssue = client.issuesApi().createIssue(issueRequest, false);
       String issueKey = createdIssue.getKey();
+      Map<String, String> binaryData = findBinaryData(issueRequest);
 
       // post binary data
       IssueBean issue = client.issuesApi().getIssue(issueKey, null, false, null, null, false, false);
       for (Map.Entry<String, String> binaryDataEntry : binaryData.entrySet()) {
-        Optional<InputStream> data = dataStoreService.load(binaryDataEntry.getKey());
-        if (data.isPresent()) {
-          binaryDataEntry.getValue();
-          addAttachment(issueKey, integration, data.get());
-        }
+        dataStoreService.load(binaryDataEntry.getKey())
+            .ifPresent(inputStream -> addAttachment(issueKey, integration, inputStream, binaryDataEntry.getValue()));
       }
 
       if (linkedIssue != null) {
@@ -245,26 +243,30 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
       String[] issues = value.split(" ");
       for (String issueKey : issues) {
         var issueToLink = new IssueLinkType()
-            .inward(issueKey)
-            .outward(issue.getKey())
             .name(LINKED_ISSUE_TYPE);
+        var inwardIssue = new LinkedIssue();
+        inwardIssue.setKey(issueKey);
 
-        LinkIssueRequestJsonBean linkIssuesInput = new LinkIssueRequestJsonBean(null, null, null, issueToLink);
+        var outwardIssue = new LinkedIssue();
+        outwardIssue.setKey(issue.getKey());
+
+
+        LinkIssueRequestJsonBean linkIssuesInput = new LinkIssueRequestJsonBean(null, inwardIssue, outwardIssue, issueToLink);
         jiraRestClient.issueLinksApi().linkIssues(linkIssuesInput);
       }
     }
   }
 
   @SneakyThrows
-  public void addAttachment(String issueKey, Integration integration, InputStream data) throws RestClientException {
+  public void addAttachment(String issueKey, Integration integration, InputStream data, String filename) throws RestClientException {
     var details = cloudJiraClientProvider.extractAndDecryptDetails(integration.getParams());
 
     MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create()
         .setLaxMode()
         .setCharset(StandardCharsets.UTF_8)
-        .addBinaryBody("file", data.readAllBytes(), ContentType.DEFAULT_BINARY, "attachment.txt");
+        .addBinaryBody("file", data.readAllBytes(), ContentType.DEFAULT_BINARY, filename);
 
-    HttpPost request = new HttpPost(details.url() + String.format("/rest/api/3/issue/%s/attachments", issueKey));
+    HttpPost request = new HttpPost(details.url() + String.format("/rest/api/latest/issue/%s/attachments", issueKey));
     request.setEntity(entityBuilder.build());
     request.setHeader("X-Atlassian-Token", "no-check");
     request.setHeader("Authorization", "Basic " + getAuthorizationHeader(details.username(), details.credentials()));

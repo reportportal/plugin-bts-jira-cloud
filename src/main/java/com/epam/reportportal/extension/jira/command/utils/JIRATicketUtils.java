@@ -18,7 +18,7 @@ package com.epam.reportportal.extension.jira.command.utils;
 
 import static com.epam.reportportal.extension.jira.command.utils.IssueField.ASSIGNEE_FIELD;
 
-import com.epam.reportportal.extension.jira.api.model.EntityProperty;
+import com.epam.reportportal.extension.jira.api.model.FieldMetadata;
 import com.epam.reportportal.extension.jira.api.model.IssueBean;
 import com.epam.reportportal.extension.jira.api.model.IssueCreateMetadata;
 import com.epam.reportportal.extension.jira.api.model.IssueTypeDetails;
@@ -159,7 +159,7 @@ public class JIRATicketUtils {
         continue;
       }
       if (one.getId().equalsIgnoreCase(PARENT_FIELD_ID) && !one.getValue().isEmpty()) {
-        issueUpdateDetails.putFieldsItem(PARENT_FIELD_ID, Map.entry("key", one.getValue()));
+        issueUpdateDetails.putFieldsItem(PARENT_FIELD_ID, Map.entry("key", one.getValue().get(0)));
         continue;
       }
 
@@ -168,15 +168,16 @@ public class JIRATicketUtils {
       if (cimFieldInfo != null) {
         try {
           List<Object> arrayOfValues = new ArrayList<>();
-          for (Object o : cimFieldInfo.getAllowedValues()) {
-            JsonNode jn = new ObjectMapper().valueToTree(o);
-            if (isCustomField(jn) && one.getValue().contains(jn.get("value").asText())) {
-              issueUpdateDetails.putFieldsItem(ASSIGNEE_FIELD.getValue(), Map.entry("id", one.getValue().get(0)));
-              arrayOfValues.add(Map.entry("id", jn.get("id").asText()));
+          if (cimFieldInfo.getAllowedValues() != null) {
+            for (Object o : new ArrayList<>(cimFieldInfo.getAllowedValues())) {
+              JsonNode jn = new ObjectMapper().valueToTree(o);
+              if (isCustomField(jn) && one.getValue().contains(jn.get("value").asText())) {
+                arrayOfValues.add(Map.entry("id", jn.get("id").asText()));
+              }
             }
           }
           if (one.getFieldType().equalsIgnoreCase(IssueFieldType.ARRAY.name)) {
-            issueUpdateDetails.putFieldsItem(one.getId(), arrayOfValues);
+            processArrayValue(issueUpdateDetails, cimFieldInfo, one, arrayOfValues);
           } else {
             issueUpdateDetails.putFieldsItem(one.getId(), arrayOfValues.get(0));
           }
@@ -186,7 +187,7 @@ public class JIRATicketUtils {
         }
       } else {
         if (one.getFieldType().equalsIgnoreCase(IssueFieldType.ARRAY.name)) {
-          if (one.getId().equalsIgnoreCase(IssueField.LABELS_FIELD.value)) {
+          if (one.getId().equalsIgnoreCase(IssueField.LABELS_FIELD.getValue())) {
             issueUpdateDetails.putFieldsItem(one.getId(), processLabels(one.getValue().get(0)));
           } else {
             issueUpdateDetails.putFieldsItem(one.getId(), one.getValue());
@@ -220,9 +221,20 @@ public class JIRATicketUtils {
         }
       }
     }
-    issueUpdateDetails.getProperties()
-        .add(new EntityProperty("description", userDefinedDescription.concat("\n").concat(descriptionService.getDescription(ticketRQ))));
+    issueUpdateDetails.putFieldsItem("description",
+        userDefinedDescription.concat("\n").concat(descriptionService.getDescription(ticketRQ)));
     return issueUpdateDetails;
+  }
+
+  private static void processArrayValue(IssueUpdateDetails issueUpdateDetails, FieldMetadata cimFieldInfo, PostFormField one,
+      List<Object> arrayOfValues) {
+    if (cimFieldInfo.getSchema() != null
+        && cimFieldInfo.getSchema().getCustom() != null
+        && cimFieldInfo.getSchema().getCustom().equals("com.atlassian.jira.plugin.system.customfieldtypes:labels")) {
+      issueUpdateDetails.putFieldsItem(one.getId(), processLabels(one.getValue().get(0)));
+    } else {
+      issueUpdateDetails.putFieldsItem(one.getId(), arrayOfValues);
+    }
   }
 
   /**
@@ -232,7 +244,7 @@ public class JIRATicketUtils {
    * @return
    */
   private static List<String> processLabels(String values) {
-    return Stream.of(values.split(" ")).collect(Collectors.toList());
+    return Stream.of(values.trim().split(" ")).collect(Collectors.toList());
   }
 
   /**

@@ -22,6 +22,12 @@ import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvide
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -47,9 +53,16 @@ public abstract class BaseCommandTest {
   public static final Integration INTEGRATION = new Integration();
 
   public static BasicTextEncryptor basicTextEncryptor = new BasicTextEncryptor();
+  public static ObjectMapper objectMapper = new ObjectMapper();
 
   static {
     basicTextEncryptor.setPassword("123");
+
+    objectMapper.setAnnotationIntrospector(new JacksonAnnotationIntrospector());
+    objectMapper.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, true);
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+    objectMapper.registerModule(new JavaTimeModule());
   }
 
   CloudJiraClientProvider cloudJiraClientProvider = new CloudJiraClientProvider(basicTextEncryptor);

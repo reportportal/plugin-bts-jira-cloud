@@ -17,7 +17,6 @@
 package com.epam.reportportal.extension.jira.command;
 
 import static com.epam.reportportal.extension.jira.command.UserSearchCommand.SEARCH_TERM;
-import static com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties.EMAIL;
 import static com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties.URL;
 
 import com.epam.reportportal.extension.jira.dto.UserDto;
@@ -35,12 +34,12 @@ class UserSearchCommandTest extends BaseCommandTest {
   @DisabledIf("disabled")
   void searchUsersByQuery() {
     Map<String, Object> params = new HashMap<>();
-    params.put(SEARCH_TERM, EMAIL.getParam(INTEGRATION.getParams()).get());
+    params.put(SEARCH_TERM, "t");
     params.put(URL.getName(), URL.getParam(INTEGRATION.getParams()).get());
 
     var command = new UserSearchCommand(projectRepository, cloudJiraClientProvider);
     var users = command.invokeCommand(INTEGRATION, params);
-    log.info("Found users: {}", users.stream().map(UserDto::username).toList());
+    log.info("Found users: {}", users.stream().map(UserDto::name).toList());
     Assertions.assertFalse(users.isEmpty());
   }
 }

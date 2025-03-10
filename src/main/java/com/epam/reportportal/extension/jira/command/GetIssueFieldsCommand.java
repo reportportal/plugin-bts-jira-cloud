@@ -152,7 +152,6 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
           defValue = Collections.singletonList(issueTypeParam);
         }
         if (fieldID.equalsIgnoreCase(ASSIGNEE_FIELD.getValue())) {
-          allowed = getJiraProjectAssignee(jiraProject);
           commandName = "searchUsers";
         }
 
@@ -168,26 +167,6 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
       LOGGER.error(e.getMessage(), e);
       return new ArrayList<>();
     }
-  }
-
-
-
-  /**
-   * Get list of project users available for assignee field
-   *
-   * @param jiraProject Project from JIRA
-   * @return List of allowed values
-   */
-  private List<AllowedValue> getJiraProjectAssignee(Project jiraProject) {
-    try {
-      return jiraProject.getRoles().entrySet().stream()
-          .map(roleEntry -> new AllowedValue(roleEntry.getKey(), roleEntry.getValue().toString()))
-          .toList();
-    } catch (Exception e) {
-      LOGGER.error(e.getMessage(), e);
-      throw new ReportPortalException("There is a problem while getting issue types", e);
-    }
-
   }
 
 }

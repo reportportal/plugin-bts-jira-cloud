@@ -19,8 +19,10 @@ package com.epam.reportportal.extension.jira.command;
 import static com.epam.reportportal.extension.jira.command.GetIssueFieldsCommand.ISSUE_TYPE;
 import static com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties.PROJECT;
 import static com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties.URL;
-import static com.epam.reportportal.extension.jira.utils.SampleData.EPIC;
+import static com.epam.reportportal.extension.jira.utils.SampleData.BUG;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
@@ -35,8 +37,7 @@ import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -51,7 +52,6 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 class PostTicketCommandTest extends BaseCommandTest {
 
-  ObjectMapper objectMapper = new ObjectMapper();
   private final RequestEntityConverter requestEntityConverter = new RequestEntityConverter(objectMapper);
 
   @Mock
@@ -63,16 +63,16 @@ class PostTicketCommandTest extends BaseCommandTest {
 
   @ParameterizedTest
   @CsvSource(value = {
-      "Epic"
+      "Story"
   })
-  void postTicketCommand(String issueType) throws JsonProcessingException, FileNotFoundException {
+  void postTicketCommand(String issueType) throws JsonProcessingException {
     if (disabled()) {
       return;
     }
     TestItem testItem = new TestItem();
     when(itemRepository.findById(anyLong())).thenReturn(Optional.of(testItem));
 
-    PostTicketRQ entity = objectMapper.readValue(EPIC, PostTicketRQ.class);
+    PostTicketRQ entity = objectMapper.readValue(BUG, PostTicketRQ.class);
 
     Map<String, Object> params = new HashMap<>(JIRA_COMMAND_PARAMS);
     params.put(PROJECT.getName(), PROJECT.getParam(INTEGRATION.getParams()));
@@ -82,6 +82,12 @@ class PostTicketCommandTest extends BaseCommandTest {
 
     lenient().when(dataStoreService.load(anyString()))
         .thenReturn(Optional.of(getClass().getClassLoader().getResourceAsStream("attachment.txt")));
+
+    // TODO: mock log attachments
+    lenient().when(itemRepository.findById(anyLong()))
+        .thenReturn(Optional.of(new TestItem()));
+    lenient().when(logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsWithLimit(anyLong(), any(), anyInt()))
+        .thenReturn(new ArrayList<>());
 
     var command = new PostTicketCommand(projectRepository, requestEntityConverter, cloudJiraClientProvider,
         new JIRATicketDescriptionService(logRepository, itemRepository), dataStoreService);

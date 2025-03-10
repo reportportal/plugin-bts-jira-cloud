@@ -18,6 +18,6 @@ package com.epam.reportportal.extension.jira.dto;
 /**
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
-public record UserDto(String accountId, String username) {
+public record UserDto(String id, String name) {
 
 }
