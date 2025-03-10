@@ -16,14 +16,15 @@
 package com.epam.reportportal.extension.jira.command.utils;
 
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import lombok.Getter;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
+@Getter
 public enum CloudJiraProperties {
 
 	EMAIL("email"),
@@ -52,7 +53,4 @@ public enum CloudJiraProperties {
 		params.getParams().put(this.name, value);
 	}
 
-	public String getName() {
-		return name;
-	}
 }

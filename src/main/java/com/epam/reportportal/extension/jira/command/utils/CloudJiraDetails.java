@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 EPAM Systems
+ * Copyright 2025 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.reportportal.extension.jira.dto;
 
-/**
- * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
- */
-public record UserDto(String id, String name) {
+package com.epam.reportportal.extension.jira.command.utils;
+
+public record CloudJiraDetails(String username, String credentials, String url) {
 
 }
