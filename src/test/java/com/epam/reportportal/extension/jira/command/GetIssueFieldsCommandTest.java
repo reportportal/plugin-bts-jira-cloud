@@ -44,7 +44,7 @@ class GetIssueFieldsCommandTest extends BaseCommandTest {
     params.put(URL.getName(), URL.getParam(INTEGRATION.getParams()));
     params.put(ISSUE_TYPE, issueType);
 
-    var command = new GetIssueFieldsCommand(projectRepository, cloudJiraClientProvider);
+    var command = new GetIssueFieldsCommand(projectRepository, organizationRepositoryCustom, cloudJiraClientProvider);
     List<PostFormField> response = command.invokeCommand(INTEGRATION, params);
 
     assertFalse(response.isEmpty());

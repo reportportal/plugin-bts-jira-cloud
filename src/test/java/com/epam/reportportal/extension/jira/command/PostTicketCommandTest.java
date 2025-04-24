@@ -35,6 +35,7 @@ import com.epam.reportportal.model.externalsystem.Ticket;
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
+import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.entity.item.TestItem;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.ArrayList;
@@ -90,7 +91,7 @@ class PostTicketCommandTest extends BaseCommandTest {
         .thenReturn(new ArrayList<>());
 
     var command = new PostTicketCommand(projectRepository, requestEntityConverter, cloudJiraClientProvider,
-        new JIRATicketDescriptionService(logRepository, itemRepository), dataStoreService);
+        new JIRATicketDescriptionService(logRepository, itemRepository), dataStoreService, organizationRepositoryCustom);
     Ticket ticket = command.invokeCommand(INTEGRATION, params);
 
     assertNotNull(ticket);

@@ -37,7 +37,7 @@ class UserSearchCommandTest extends BaseCommandTest {
     params.put(SEARCH_TERM, "t");
     params.put(URL.getName(), URL.getParam(INTEGRATION.getParams()).get());
 
-    var command = new UserSearchCommand(projectRepository, cloudJiraClientProvider);
+    var command = new UserSearchCommand(projectRepository, cloudJiraClientProvider, organizationRepositoryCustom);
     var users = command.invokeCommand(INTEGRATION, params);
     log.info("Found users: {}", users.stream().map(UserDto::name).toList());
     Assertions.assertFalse(users.isEmpty());

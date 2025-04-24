@@ -35,7 +35,7 @@ class GetIssueTypesCommandTest extends BaseCommandTest {
     params.put(PROJECT.getName(), PROJECT.getParam(INTEGRATION.getParams()));
     params.put(URL.getName(), URL.getParam(INTEGRATION.getParams()));
 
-    var command = new GetIssueTypesCommand(projectRepository, cloudJiraClientProvider);
+    var command = new GetIssueTypesCommand(projectRepository, cloudJiraClientProvider, organizationRepositoryCustom);
     List<String> response = command.invokeCommand(INTEGRATION, params);
     Assertions.assertFalse(response.isEmpty());
   }

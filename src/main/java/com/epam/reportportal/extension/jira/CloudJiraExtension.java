@@ -228,16 +228,13 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 
   private Map<String, PluginCommand<?>> getCommands() {
     List<PluginCommand<?>> commands = new ArrayList<>();
-    commands.add(new UserSearchCommand(projectRepository, cloudJiraClientProviderSupplier.get(),
-        organizationRepository));
+    commands.add(new UserSearchCommand(projectRepository, cloudJiraClientProviderSupplier.get(), organizationRepository));
     commands.add(new TestConnectionCommand(cloudJiraClientProviderSupplier.get()));
-    commands.add(new GetIssueFieldsCommand(projectRepository, organizationRepository,
-        cloudJiraClientProviderExtendedSupplier.get()));
-    commands.add(new GetIssueTypesCommand(projectRepository, cloudJiraClientProviderSupplier.get(),
-        organizationRepository));
+    commands.add(new GetIssueFieldsCommand(projectRepository, organizationRepository, cloudJiraClientProviderSupplier.get()));
+    commands.add(new GetIssueTypesCommand(projectRepository, cloudJiraClientProviderSupplier.get(), organizationRepository));
     commands.add(new PostTicketCommand(projectRepository,
         requestEntityConverter,
-        cloudJiraClientProviderExtendedSupplier.get(),
+        cloudJiraClientProviderSupplier.get(),
         jiraTicketDescriptionServiceSupplier.get(),
         dataStoreService,
         organizationRepository
