@@ -17,29 +17,26 @@ package com.epam.reportportal.extension.jira.command;
 
 import static java.util.Optional.ofNullable;
 
-import com.atlassian.jira.rest.client.api.domain.User;
 import com.epam.reportportal.extension.ProjectMemberCommand;
-import com.epam.reportportal.extension.jira.command.atlassian.AsynchronousUserRestClientExtended;
+import com.epam.reportportal.extension.jira.client.JiraRestClient;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.dto.UserDto;
-import com.epam.reportportal.extension.jira.utils.UserMapper;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
 public class UserSearchCommand extends ProjectMemberCommand<List<UserDto>> {
 
-  private static final String SEARCH_TERM = "term";
+  public static final String SEARCH_TERM = "term";
   private final CloudJiraClientProvider cloudJiraClientProvider;
 
-  public UserSearchCommand(ProjectRepository projectRepository,
-      CloudJiraClientProvider cloudJiraClientProvider,
+  public UserSearchCommand(ProjectRepository projectRepository, CloudJiraClientProvider cloudJiraClientProvider,
       OrganizationRepositoryCustom organizationRepository) {
     super(projectRepository, organizationRepository);
     this.cloudJiraClientProvider = cloudJiraClientProvider;
@@ -47,12 +44,13 @@ public class UserSearchCommand extends ProjectMemberCommand<List<UserDto>> {
 
   @Override
   protected List<UserDto> invokeCommand(Integration integration, Map<String, Object> params) {
-    IntegrationParams integrationParams = integration.getParams();
-    String query = (String) ofNullable(params.get(SEARCH_TERM)).orElse("");
-    AsynchronousUserRestClientExtended userClient;
-    userClient = cloudJiraClientProvider.createUserClient(integrationParams);
-    Iterable<User> users = userClient.findUsers(query).claim();
-    return UserMapper.toUserDtoList(users);
+    JiraRestClient userClient = cloudJiraClientProvider.getApiClient(integration.getParams());
+    String username = (String) ofNullable(params.get(SEARCH_TERM)).orElse("");
+
+    return userClient.userSearchApi().findUsers(username, null, null, null, null, null)
+        .stream()
+        .map(user -> new UserDto(user.getAccountId(), user.getDisplayName()))
+        .collect(Collectors.toList());
   }
 
   @Override

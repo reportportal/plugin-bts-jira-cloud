@@ -1,27 +1,26 @@
-import com.github.spotbugs.SpotBugsTask
-
 plugins {
-    id "io.spring.dependency-management" version "1.0.9.RELEASE"
+    id 'io.spring.dependency-management' version '1.1.7'
     id 'java'
     id 'jacoco'
-    id "com.github.spotbugs" version "3.0.0"
     id "com.github.node-gradle.node" version "2.2.1"
-    id 'nu.studer.jooq' version '3.0.3'
+    id "org.openapi.generator" version "7.12.0"
+    id "org.springframework.boot" version "3.4.2" apply false
 }
+
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 apply from: 'project-properties.gradle'
 
 def scriptsUrl = 'https://raw.githubusercontent.com/reportportal/gradle-scripts/' +
         (releaseMode ? getProperty('scripts.version') : 'develop')
 
-apply from: 'jooq.gradle'
 apply from: 'ui.gradle'
 apply from: scriptsUrl + '/release-fat.gradle'
 apply from: scriptsUrl + '/signing.gradle'
 
 repositories {
-    maven { url "https://packages.atlassian.com/maven/repository/public" }
     mavenCentral { url "https://repo1.maven.org/maven2" }
+    maven { url "https://packages.atlassian.com/maven/repository/public" }
 
     if (!releaseMode) {
         maven { url 'https://jitpack.io' }
@@ -33,49 +32,66 @@ dependencyManagement {
         mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.12.1' : 'com.epam.reportportal:commons-bom:5.12.1')
     }
 }
+ext['spring-boot.version'] = "${springBootVersion}"
 
 dependencies {
+    // ALL new dependencies should be included in shadowJar plugin!
+    // transitive dependencies may be required as well. could be checked in runtime only!
     if (releaseMode) {
         implementation 'com.epam.reportportal:commons-dao'
         implementation 'com.epam.reportportal:plugin-api'
         annotationProcessor 'com.epam.reportportal:plugin-api'
     } else {
-        implementation 'com.github.reportportal:commons-dao:215668f'
-        implementation 'com.github.reportportal:plugin-api:925a550'
-        annotationProcessor 'com.github.reportportal:plugin-api:925a550'
+        implementation 'com.github.reportportal:commons-dao:cd88356'
+        implementation 'com.github.reportportal:plugin-api:ae5c502'
+        annotationProcessor 'com.github.reportportal:plugin-api:ae5c502'
     }
-    implementation 'org.hibernate:hibernate-core:5.6.15.Final'
 
-    implementation group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.1'
-    implementation group: 'org.jooq', name: 'jooq', version: '3.14.4'
-    jooqRuntime 'org.postgresql:postgresql:42.7.3'
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.4.2") // supports gzip encoding
+    implementation "org.hibernate.validator:hibernate-validator:8.0.2.Final"
+    implementation 'jakarta.el:jakarta.el-api:6.0.1'
+    implementation 'org.glassfish:jakarta.el:4.0.2'
+    implementation "org.springdoc:springdoc-openapi-common:1.8.0"
 
-    compile 'ch.qos.logback:logback-classic:1.2.3'
-    compile 'org.slf4j:slf4j-api:1.7.25'
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
-    compile 'io.atlassian.fugue:fugue:4.7.2'
-    compile 'com.atlassian.jira:jira-rest-java-client-core:5.2.1'
-
-    testImplementation('org.junit.jupiter:junit-jupiter:5.6.0')
+    testImplementation('org.junit.jupiter:junit-jupiter:5.11.4')
+    testImplementation "org.mockito:mockito-junit-jupiter:5.14.2"
 
 }
 
-spotbugs {
-    sourceSets = [sourceSets.main]
-    reportLevel = "high"
-}
-tasks.withType(SpotBugsTask) {
-    reports {
-        xml.enabled false
-        html.enabled true
+sourceSets {
+    main {
+        java {
+            srcDirs "$buildDir/generated/src/main/java"
+            exclude("$buildDir/generated/src/main/java/com/epam/reportportal/api/jira/MyselfApi.java")
+        }
     }
+}
+
+
+tasks.register('generateJiraApi', GenerateTask) {
+    // set latest available api version instead of specific one
+    ant.replaceregexp(match: '/rest/api/3', replace: '/rest/api/latest', flags: 'g', byline: false) {
+        fileset(dir: '.', includes: "src/main/resources/openapi/swagger-v3.v3.json")
+    }
+
+    generatorName.set("java")
+    inputSpec.set("$rootDir/src/main/resources/openapi/swagger-v3.v3.json")
+    outputDir.set("$buildDir/generated")
+    configFile.set("$rootDir/src/main/resources/openapi/config.json")
+    ignoreFileOverride = "${projectDir.path}/.openapi-generator-ignore"
+    skipOverwrite.set(true)
 }
 
 test {
     useJUnitPlatform()
     jacocoTestReport {
         reports {
-            xml.enabled true
+            xml.required = true
         }
     }
 }
@@ -106,7 +122,7 @@ jar {
     }
     manifest {
         attributes(
-                "Class-Path": configurations.compile.collect { it.getName() }.join(' '),
+                "Class-Path": configurations.compileClasspath.collect { it.getName() }.join(' '),
                 "Plugin-Id": "${pluginId}",
                 "Plugin-Version": "${project.version}",
                 "Plugin-Provider": "Report Portal",
@@ -117,24 +133,17 @@ jar {
 }
 
 shadowJar {
-    archiveClassifier.set(null)
     from("src/main/resources") {
         into("/resources")
     }
     from("ui/build") {
         into("/resources")
     }
-    configurations = [project.configurations.compile]
+    configurations = [project.configurations.compileClasspath]
     zip64 true
     dependencies {
-        exclude(dependency('com.github.reportportal:'))
-        exclude(dependency('com.epam.reportportal:'))
-        exclude(dependency('org.springframework:'))
-        exclude(dependency('org.springframework.security:'))
-        exclude(dependency('org.springframework.data:'))
-        exclude(dependency('org.springframework.boot:'))
-        exclude(dependency('ch.qos.logback:'))
-        exclude(dependency('org.slf4j:'))
+        include(dependency("jakarta.ws.rs:jakarta.ws.rs-api:.*"))
+        include(dependency("org.apache.tomcat:tomcat-annotations-api:.*"))
     }
 }
 
@@ -144,9 +153,9 @@ task plugin(type: Jar) {
         with jar
     }
     into('lib') {
-        from configurations.compile
+        from configurations.compileClasspath
     }
-    extension('zip')
+    archiveExtension.set('zip')
 }
 
 task assemblePlugin(type: Copy) {
@@ -158,5 +167,4 @@ task assemblePlugins(type: Copy) {
     dependsOn subprojects.assemblePlugin
 }
 
-compileJava.dependsOn npm_run_build
-
+compileJava.dependsOn npm_run_build, generateJiraApi

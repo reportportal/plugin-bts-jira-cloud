@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-package com.epam.reportportal.extension.jira.command.connection;
+package com.epam.reportportal.extension.jira.command;
 
 import static java.util.Optional.ofNullable;
 
-import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
+import com.epam.reportportal.extension.jira.utils.IntegrationValidator;
+import com.epam.reportportal.rules.exception.ErrorType;
+import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.reportportal.rules.exception.ErrorType;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static java.util.Optional.ofNullable;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -52,22 +50,19 @@ public class TestConnectionCommand implements PluginCommand<Boolean> {
 
   @Override
   public Boolean executeCommand(Integration integration, Map<String, Object> params) {
-    IntegrationParams integrationParams = ofNullable(integration.getParams()).orElseThrow(
-        () -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-            "Integration params are not specified."
-        ));
-    String project = CloudJiraProperties.PROJECT.getParam(integrationParams).orElseThrow(
-        () -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-            "Project key is not specified."
-        ));
+    IntegrationParams integrationParams = ofNullable(integration.getParams())
+        .orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Integration params are not specified."));
+    String projectKey = CloudJiraProperties.PROJECT.getParam(integrationParams)
+        .orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Project key is not specified."));
+    IntegrationValidator.validateThirdPartyUrl(integration);
 
-    try (JiraRestClient restClient = cloudJiraClientProvider.get(integrationParams)) {
-      return restClient.getProjectClient().getProject(project).claim() != null;
+    try {
+      var jn = cloudJiraClientProvider.getApiClient(integrationParams).projectsApi().getProject(projectKey, null, null);
+      return jn != null;
     } catch (Exception e) {
-      LOGGER.error("Unable to connect to Cloud Jira: " + e.getMessage(), e);
+      LOGGER.error("Unable to connect to Cloud Jira: ", e);
       throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-          String.format("Unable to connect to Cloud Jira. Message: %s", e.getMessage()), e
-      );
+          String.format("Unable to connect to Cloud Jira. Message: %s", e.getMessage()), e);
     }
   }
 }
