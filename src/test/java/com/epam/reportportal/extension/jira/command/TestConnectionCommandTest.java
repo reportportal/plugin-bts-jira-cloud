@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 EPAM Systems
+ * Copyright 2025 EPAM Systems
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.reportportal.extension.jira.dto;
 
-/**
- * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
- */
-public record UserDto(String id, String name) {
+package com.epam.reportportal.extension.jira.command;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.HashMap;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIf;
+
+class TestConnectionCommandTest extends BaseCommandTest {
+
+  @Test
+  @DisabledIf("disabled")
+  void testConnection() {
+    var command = new TestConnectionCommand(cloudJiraClientProvider);
+    Boolean response = command.executeCommand(INTEGRATION, new HashMap<>());
+    assertTrue(response);
+  }
 }

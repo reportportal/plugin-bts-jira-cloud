@@ -1,0 +1,25 @@
+{
+  "modelPackage": "com.epam.reportportal.extension.jira.api.model",
+  "apiPackage": "com.epam.reportportal.extension.jira.api",
+  "invokerPackage": "com.epam.reportportal.extension.jira.api.client",
+  "library": "resttemplate",
+  "groupId": "com.atlassian.jira.rest",
+  "artifactId": "client",
+  "dateLibrary": "java8",
+  "generateConstructorWithAllArgs": true,
+  "generatedConstructorWithRequiredArgs": true,
+  "generateClientAsBean": true,
+  "hideGenerationTimestamp": true,
+  "interfaceOnly": true,
+  "skipOperationExample": true,
+  "documentationProvider": "none",
+  "openapiNormalizer": {
+    "REF_AS_PARENT_IN_ALLOF": true
+  },
+  "java21": true,
+  "useSpringBoot3": true,
+  "useJakartaEe": true,
+  "openApiNullable": false,
+  "skipOverwrite": true,
+  "useTags": true
+}

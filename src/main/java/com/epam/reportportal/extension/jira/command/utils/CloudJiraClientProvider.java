@@ -16,16 +16,10 @@
 
 package com.epam.reportportal.extension.jira.command.utils;
 
-import com.atlassian.jira.rest.client.api.JiraRestClient;
-import com.atlassian.jira.rest.client.auth.BasicHttpAuthenticationHandler;
-import com.atlassian.jira.rest.client.internal.async.AsynchronousHttpClientFactory;
-import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
-import com.atlassian.jira.rest.client.internal.async.DisposableHttpClient;
-import com.epam.reportportal.extension.jira.command.atlassian.AsynchronousUserRestClientExtended;
-import com.epam.ta.reportportal.entity.integration.IntegrationParams;
-import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.reportportal.extension.jira.client.JiraRestClient;
 import com.epam.reportportal.rules.exception.ErrorType;
-import java.net.URI;
+import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import org.jasypt.util.text.BasicTextEncryptor;
 
 /**
@@ -43,26 +37,15 @@ public class CloudJiraClientProvider {
     this.textEncryptor = textEncryptor;
   }
 
-  public JiraRestClient get(IntegrationParams integrationParams) {
+  public JiraRestClient getApiClient(IntegrationParams integrationParams) {
     CloudJiraDetails details = extractAndDecryptDetails(integrationParams);
-    return new AsynchronousJiraRestClientFactory().createWithBasicHttpAuthentication(
-        URI.create(details.url), details.providedUsername, details.credentials);
+    return new JiraRestClient(details.url(), details.username(), details.credentials());
   }
 
-  public AsynchronousUserRestClientExtended createUserClient(IntegrationParams integrationParams) {
-    CloudJiraDetails details = extractAndDecryptDetails(integrationParams);
-    DisposableHttpClient httpClient = new AsynchronousHttpClientFactory()
-        .createClient(URI.create(details.url),
-            new BasicHttpAuthenticationHandler(details.providedUsername, details.credentials));
-    return new AsynchronousUserRestClientExtended(URI.create(details.url), httpClient);
-  }
 
-  private CloudJiraDetails extractAndDecryptDetails(IntegrationParams integrationParams) {
-    String providedUsername = getTextParamOrThrow(CloudJiraProperties.EMAIL, integrationParams,
-        USER_EMAIL_NOT_SPECIFIED);
-    String credentials = textEncryptor.decrypt(
-        getTextParamOrThrow(CloudJiraProperties.API_TOKEN, integrationParams,
-            API_TOKEN_NOT_SPECIFIED));
+  public CloudJiraDetails extractAndDecryptDetails(IntegrationParams integrationParams) {
+    String providedUsername = getTextParamOrThrow(CloudJiraProperties.EMAIL, integrationParams, USER_EMAIL_NOT_SPECIFIED);
+    String credentials = textEncryptor.decrypt(getTextParamOrThrow(CloudJiraProperties.API_TOKEN, integrationParams, API_TOKEN_NOT_SPECIFIED));
     String url = getTextParamOrThrow(CloudJiraProperties.URL, integrationParams, URL_NOT_SPECIFIED);
     return new CloudJiraDetails(providedUsername, credentials, url);
   }
@@ -73,17 +56,5 @@ public class CloudJiraClientProvider {
         () -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, errorMessage));
   }
 
-  private static class CloudJiraDetails {
-
-    final String providedUsername;
-    final String credentials;
-    final String url;
-
-    CloudJiraDetails(String providedUsername, String credentials, String url) {
-      this.providedUsername = providedUsername;
-      this.credentials = credentials;
-      this.url = url;
-    }
-  }
 
 }
