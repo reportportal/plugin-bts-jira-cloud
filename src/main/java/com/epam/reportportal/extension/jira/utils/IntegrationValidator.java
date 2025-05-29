@@ -16,19 +16,21 @@
 
 package com.epam.reportportal.extension.jira.utils;
 
+import com.epam.reportportal.extension.bugtracking.BtsConstants;
 import com.epam.reportportal.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.rules.commons.validation.Suppliers;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.ta.reportportal.commons.Predicates;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author <a href="mailto:siarhei_hrabko@epam.com">Siarhei Hrabko</a>
  */
 public final class IntegrationValidator {
 
-  private static final String JIRA_URL_PATTERN = "https://[^?]*\\.atlassian\\.(com|net).*";
+  private static final String JIRA_URL_PATTERN = "https://[^?]*\\.(atlassian\\.(com|net)|jira\\.com)$";
 
   private IntegrationValidator() {
     //static only
@@ -41,8 +43,9 @@ public final class IntegrationValidator {
    * @param integration {@link Integration}
    */
   public static void validateThirdPartyUrl(Integration integration) {
-    var valid = Pattern.matches(JIRA_URL_PATTERN,
-        String.valueOf(integration.getParams().getParams().get("url")));
+    var normalizedUrl = StringUtils
+        .removeEnd(BtsConstants.URL.getParam(integration.getParams(), String.class).get(), "/");
+    var valid = Pattern.matches(JIRA_URL_PATTERN, normalizedUrl);
 
     BusinessRule.expect(valid, Predicates.equalTo(true))
         .verify(ErrorType.BAD_REQUEST_ERROR,
