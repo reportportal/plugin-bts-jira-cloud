@@ -10,7 +10,7 @@ const composeValidators = (validators) => (value) =>
 
 const jiraCloudUrl = composeValidators([
   isNotEmpty,
-  regex(/^https:\/\/[^?]*\.(atlassian\.(com|net)|jira\.com)$/),
+  regex(/^https:\/\/[^?]*\.(atlassian\.(com|net)|jira\.com)\/?$/),
 ]);
 
 const bindMessageToValidator = (validator, errorMessage) => (value) =>
