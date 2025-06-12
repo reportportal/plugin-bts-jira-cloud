@@ -29,7 +29,7 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.12.1' : 'com.epam.reportportal:commons-bom:5.12.1')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:' + getProperty('bom.version') : 'com.epam.reportportal:commons-bom:5.14.2')
     }
 }
 ext['spring-boot.version'] = "${springBootVersion}"
@@ -74,11 +74,6 @@ sourceSets {
 
 
 tasks.register('generateJiraApi', GenerateTask) {
-    // set latest available api version instead of specific one
-    ant.replaceregexp(match: '/rest/api/3', replace: '/rest/api/latest', flags: 'g', byline: false) {
-        fileset(dir: '.', includes: "src/main/resources/openapi/swagger-v3.v3.json")
-    }
-
     generatorName.set("java")
     inputSpec.set("$rootDir/src/main/resources/openapi/swagger-v3.v3.json")
     outputDir.set("$buildDir/generated")

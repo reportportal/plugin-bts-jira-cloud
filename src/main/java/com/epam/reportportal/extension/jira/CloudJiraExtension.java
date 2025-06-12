@@ -84,6 +84,10 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 
   private static final String PLUGIN_ID = "JIRA Cloud";
 
+  private static final String NAME_FIELD = "name";
+
+  private static final String PLUGIN_NAME = "Jira Cloud";
+
   private final String resourcesDir;
 
   private final Supplier<Map<String, PluginCommand<?>>> pluginCommandMapping =
@@ -169,6 +173,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
     Map<String, Object> params = new HashMap<>();
     params.put(ALLOWED_COMMANDS, new ArrayList<>(pluginCommandMapping.get().keySet()));
     params.put(DOCUMENTATION_LINK_FIELD, DOCUMENTATION_LINK);
+    params.put(NAME_FIELD, PLUGIN_NAME);
     params.put(COMMON_COMMANDS, new ArrayList<>(commonPluginCommandMapping.get().keySet()));
     return params;
   }

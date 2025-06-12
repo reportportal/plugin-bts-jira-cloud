@@ -33,6 +33,9 @@ class IntegrationValidatorTest {
       "https://random.atlassian.com/",
       "https://jira.atlassian.net",
       "https://another.atlassian.net/",
+      "https://atlassian.jira.com/",
+      "https://another.jira.com/",
+      "https://another.jira.com",
   }, delimiter = ',')
   void validateThirdPartyUrl(String url) {
     Assertions.assertDoesNotThrow(() ->
@@ -44,6 +47,9 @@ class IntegrationValidatorTest {
       "https://atlassian.com/",
       "https://jiraatlassian.com/",
       "https://zloi.hacker.com?jira=fake.atlassian.com",
+      "https://jira.com.zloi.hacker.net",
+      "https://jira.com.zloi.hacker.net/",
+      "https://another.jira.com/admin"
   }, delimiter = ',')
   void validateThirdPartyUrlFailed(String url) {
     Assertions.assertThrows(ReportPortalException.class, () ->
