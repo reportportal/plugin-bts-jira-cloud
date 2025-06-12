@@ -39,6 +39,7 @@ import com.epam.reportportal.model.externalsystem.PostFormField;
 import com.epam.reportportal.rules.exception.ErrorType;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -62,8 +63,10 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
 
   private final CloudJiraClientProvider cloudJiraClientProvider;
 
-  public GetIssueFieldsCommand(ProjectRepository projectRepository, CloudJiraClientProvider cloudJiraClientProvider) {
-    super(projectRepository);
+  public GetIssueFieldsCommand(ProjectRepository projectRepository,
+      OrganizationRepositoryCustom organizationRepository,
+      CloudJiraClientProvider cloudJiraClientProvider) {
+    super(projectRepository, organizationRepository);
     this.cloudJiraClientProvider = cloudJiraClientProvider;
   }
 

@@ -51,6 +51,7 @@ import com.epam.reportportal.model.externalsystem.Ticket;
 import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import java.io.InputStream;
@@ -94,8 +95,9 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
   public PostTicketCommand(ProjectRepository projectRepository,
       RequestEntityConverter requestEntityConverter,
       CloudJiraClientProvider cloudJiraClientProvider,
-      JIRATicketDescriptionService descriptionService, DataStoreService dataStoreService) {
-    super(projectRepository);
+      JIRATicketDescriptionService descriptionService, DataStoreService dataStoreService,
+      OrganizationRepositoryCustom organizationRepository) {
+    super(projectRepository, organizationRepository);
     this.requestEntityConverter = requestEntityConverter;
     this.cloudJiraClientProvider = cloudJiraClientProvider;
     this.descriptionService = descriptionService;

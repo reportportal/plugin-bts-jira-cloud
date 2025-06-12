@@ -48,6 +48,7 @@ import com.epam.ta.reportportal.dao.LogRepository;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.dao.TestItemRepository;
 import com.epam.ta.reportportal.dao.TicketRepository;
+import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -117,6 +118,9 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 
   @Autowired
   private ProjectRepository projectRepository;
+
+  @Autowired
+  private OrganizationRepositoryCustom organizationRepository;
 
   @Autowired
   private LaunchRepository launchRepository;
@@ -229,12 +233,17 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 
   private Map<String, PluginCommand<?>> getCommands() {
     List<PluginCommand<?>> commands = new ArrayList<>();
-    commands.add(new UserSearchCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
+    commands.add(new UserSearchCommand(projectRepository, cloudJiraClientProviderSupplier.get(), organizationRepository));
     commands.add(new TestConnectionCommand(cloudJiraClientProviderSupplier.get()));
-    commands.add(new GetIssueFieldsCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
-    commands.add(new GetIssueTypesCommand(projectRepository, cloudJiraClientProviderSupplier.get()));
-    commands.add(new PostTicketCommand(projectRepository, requestEntityConverter, cloudJiraClientProviderSupplier.get(),
-        jiraTicketDescriptionServiceSupplier.get(), dataStoreService));
+    commands.add(new GetIssueFieldsCommand(projectRepository, organizationRepository, cloudJiraClientProviderSupplier.get()));
+    commands.add(new GetIssueTypesCommand(projectRepository, cloudJiraClientProviderSupplier.get(), organizationRepository));
+    commands.add(new PostTicketCommand(projectRepository,
+        requestEntityConverter,
+        cloudJiraClientProviderSupplier.get(),
+        jiraTicketDescriptionServiceSupplier.get(),
+        dataStoreService,
+        organizationRepository
+    ));
     return commands.stream().collect(Collectors.toMap(NamedPluginCommand::getName, it -> it));
 
   }

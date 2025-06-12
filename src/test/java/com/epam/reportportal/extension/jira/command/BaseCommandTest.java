@@ -20,6 +20,7 @@ import static com.epam.reportportal.extension.jira.utils.TestProperties.getTestP
 
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.ta.reportportal.dao.ProjectRepository;
+import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
 import com.epam.ta.reportportal.entity.integration.Integration;
 import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -43,7 +44,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @Slf4j
 @ExtendWith(MockitoExtension.class)
 public abstract class BaseCommandTest {
-
+  @Mock
+  OrganizationRepositoryCustom organizationRepositoryCustom;
   @Mock
   ProjectRepository projectRepository;
 
