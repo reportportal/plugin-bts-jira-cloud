@@ -143,9 +143,11 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
             allowed.add(new AllowedValue(version.getId(), version.getName()));
           }
         }
-        if (fieldID.equalsIgnoreCase(PRIORITY_FIELD.getValue()) && issueField.getKey().equals(PRIORITY_FIELD.name())) {
-          allowed.add(new AllowedValue(issueField.getValue().getKey(), issueField.getValue().getName()));
-
+        if (fieldID.equalsIgnoreCase(PRIORITY_FIELD.getValue())) {
+          allowed = issueField.getValue().getAllowedValues().stream()
+              .map(value -> (JsonNode) new ObjectMapper().valueToTree(value))
+              .map(jn -> new AllowedValue(jn.get("id").asText(), jn.get("name").asText()))
+              .collect(Collectors.toList());
         }
         if (fieldID.equalsIgnoreCase(ISSUE_TYPE_FIELD.getValue())) {
           isRequired = true;
