@@ -61,8 +61,7 @@ public class TestConnectionCommand implements PluginCommand<Boolean> {
       return jn != null;
     } catch (Exception e) {
       LOGGER.error("Unable to connect to Cloud Jira: ", e);
-      throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
-          String.format("Unable to connect to Cloud Jira. Message: %s", e.getMessage()), e);
+      throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Unable to connect to Cloud Jira");
     }
   }
 }
