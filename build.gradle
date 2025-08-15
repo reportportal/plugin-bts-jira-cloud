@@ -38,13 +38,13 @@ dependencies {
     // ALL new dependencies should be included in shadowJar plugin!
     // transitive dependencies may be required as well. could be checked in runtime only!
     if (releaseMode) {
-        implementation 'com.epam.reportportal:commons-dao'
+        implementation 'com.github.reportportal:commons-dao:71ef80c'
         implementation 'com.epam.reportportal:plugin-api'
         annotationProcessor 'com.epam.reportportal:plugin-api'
     } else {
-        implementation 'com.github.reportportal:commons-dao:6298e53'
-        implementation 'com.github.reportportal:plugin-api:f8e5bea'
-        annotationProcessor 'com.github.reportportal:plugin-api:f8e5bea'
+        implementation 'com.github.reportportal:commons-dao:71ef80c'
+        implementation 'com.epam.reportportal:plugin-api'
+        annotationProcessor 'com.epam.reportportal:plugin-api'
     }
 
     implementation("org.apache.httpcomponents.client5:httpclient5:5.4.2") // supports gzip encoding
