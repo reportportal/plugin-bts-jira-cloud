@@ -183,8 +183,10 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
         linkIssues(client, issue, linkedIssue);
       }
 
-      return getTicket(issueKey, integration.getParams(), client)
-          .orElse(null);
+      return JIRATicketUtils.toTicket(issue,
+          CloudJiraProperties.URL.getParam(integration.getParams())
+              .orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION,
+                  "Url is not specified.")));
 
     } catch (ReportPortalException e) {
       throw e;
@@ -222,21 +224,6 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
       }
     }
     return binary;
-  }
-
-  private Optional<Ticket> getTicket(String id, IntegrationParams details, JiraRestClient jiraRestClient) {
-    SearchResults issues = findIssue(id, jiraRestClient);
-    if (issues.getTotal() > 0) {
-      IssueBean issue = jiraRestClient.issuesApi().getIssue(id, null, false, null, null, false, false);
-      return Optional.of(JIRATicketUtils.toTicket(issue, CloudJiraProperties.URL.getParam(details)
-          .orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "Url is not specified."))));
-    } else {
-      return Optional.empty();
-    }
-  }
-
-  private SearchResults findIssue(String id, JiraRestClient jiraRestClient) {
-    return jiraRestClient.issueSearchApi().searchForIssuesUsingJql("issue = " + id, null, 50, "", null, null, null, null, null);
   }
 
   private void linkIssues(JiraRestClient jiraRestClient, IssueBean issue, PostFormField field) {
