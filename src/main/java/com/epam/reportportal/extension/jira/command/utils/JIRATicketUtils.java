@@ -128,13 +128,12 @@ public class JIRATicketUtils {
         continue;
       }
       if (one.getId().equalsIgnoreCase(IssueField.PRIORITY_FIELD.value)) {
-        if (IssuePriority.findByName(one.getValue().get(0)) != null) {
-          issueUpdateDetails.putFieldsItem(IssueField.PRIORITY_FIELD.value, one.getValue().get(0));
-        }
+        issueUpdateDetails.putFieldsItem(IssueField.PRIORITY_FIELD.value, Map.entry("name", one.getValue().get(0)));
         continue;
       }
       if (one.getId().equalsIgnoreCase(IssueField.COMPONENTS_FIELD.value)) {
-        issueUpdateDetails.putFieldsItem(IssueField.COMPONENTS_FIELD.value, one.getValue());
+        var names = one.getValue().stream().map(field -> Map.entry("name", field)).toList();
+        issueUpdateDetails.putFieldsItem(IssueField.COMPONENTS_FIELD.getValue(), names);
         continue;
       }
       if (one.getId().equalsIgnoreCase(ASSIGNEE_FIELD.getValue())) {
