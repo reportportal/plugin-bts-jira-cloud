@@ -69,7 +69,7 @@ public abstract class BaseCommandTest {
 
   @BeforeAll
   protected static void before() {
-
+    System.setProperty("DEBUGGER_ENABLED", "true");
     Properties integrationProps = getTestProperties("integration.properties");
     Map<String, Object> params = new HashMap<>();
     integrationProps.keySet()

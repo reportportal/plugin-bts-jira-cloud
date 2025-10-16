@@ -150,7 +150,8 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
 
         // FIXME : compares with itself by mistake
         validComponents.forEach(component -> expect(component, in(validComponents))
-            .verify(UNABLE_INTERACT_WITH_INTEGRATION, formattedSupplier("Component '{}' not exists in the external system", component)));
+            .verify(UNABLE_INTERACT_WITH_INTEGRATION,
+                formattedSupplier("Component '{}' not exists in the external system", component)));
       }
 
       // TODO consider to modify code below - project cached
@@ -158,9 +159,11 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
           .filter(input -> issueTypeStr.equalsIgnoreCase(input.getName()))
           .findFirst()
           .orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION,
-              formattedSupplier("Unable post issue with type '{}' for project '{}'.", issType.getValue().getFirst(), integration.getProject())));
+              formattedSupplier("Unable post issue with type '{}' for project '{}'.", issType.getValue().getFirst(),
+                  integration.getProject())));
 
-      IssueUpdateDetails issueRequest = JIRATicketUtils.toIssueInput(client, jiraProject, projectIssueType, ticketRQ, descriptionService);
+      IssueUpdateDetails issueRequest = JIRATicketUtils.toIssueInput(client, jiraProject, projectIssueType, ticketRQ,
+          descriptionService);
 
 
       /*
@@ -234,7 +237,8 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
   }
 
   private SearchResults findIssue(String id, JiraRestClient jiraRestClient) {
-    return jiraRestClient.issueSearchApi().searchForIssuesUsingJql("issue = " + id, null, 50, "", null, null, null, null, null);
+    return jiraRestClient.issueSearchApi()
+        .searchForIssuesUsingJql("issue = " + id, null, 50, "", null, null, null, null, null);
   }
 
   private void linkIssues(JiraRestClient jiraRestClient, IssueBean issue, PostFormField field) {
@@ -250,15 +254,18 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
         var outwardIssue = new LinkedIssue();
         outwardIssue.setKey(issue.getKey());
 
-
-        LinkIssueRequestJsonBean linkIssuesInput = new LinkIssueRequestJsonBean(null, inwardIssue, outwardIssue, issueToLink);
+        LinkIssueRequestJsonBean linkIssuesInput = new LinkIssueRequestJsonBean();
+        linkIssuesInput.setInwardIssue(inwardIssue);
+        linkIssuesInput.setOutwardIssue(outwardIssue);
+        linkIssuesInput.setType(issueToLink);
         jiraRestClient.issueLinksApi().linkIssues(linkIssuesInput);
       }
     }
   }
 
   @SneakyThrows
-  public void addAttachment(String issueKey, Integration integration, InputStream data, String filename) throws RestClientException {
+  public void addAttachment(String issueKey, Integration integration, InputStream data, String filename)
+      throws RestClientException {
     var details = cloudJiraClientProvider.extractAndDecryptDetails(integration.getParams());
 
     MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create()
