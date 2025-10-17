@@ -85,7 +85,7 @@ public class GetIssueCommand implements CommonPluginCommand<Ticket> {
     try {
       issueBean = client.issuesApi().getIssue(ticketId, List.of("summary", "status"), false, null, null, false, false);
     } catch (Exception e) {
-      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, e.getMessage());
+      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR);
     }
     if (Objects.nonNull(issueBean)) {
       return JIRATicketUtils.toTicket(issueBean, CloudJiraProperties.URL.getParam(details)
