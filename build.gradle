@@ -3,7 +3,7 @@ plugins {
     id 'java'
     id 'jacoco'
     id "com.github.node-gradle.node" version "2.2.1"
-    id "org.openapi.generator" version "7.12.0"
+    id "org.openapi.generator" version "7.16.0"
     id "org.springframework.boot" version "3.4.2" apply false
 }
 
@@ -42,9 +42,9 @@ dependencies {
         implementation 'com.epam.reportportal:plugin-api'
         annotationProcessor 'com.epam.reportportal:plugin-api'
     } else {
-        implementation 'com.epam.reportportal:commons-dao'
-        implementation 'com.epam.reportportal:plugin-api'
-        annotationProcessor 'com.epam.reportportal:plugin-api'
+        implementation 'com.github.reportportal:commons-dao:6298e53'
+        implementation 'com.github.reportportal:plugin-api:8cd6958'
+        annotationProcessor 'com.github.reportportal:plugin-api:8cd6958'
     }
 
     implementation("org.apache.httpcomponents.client5:httpclient5:5.4.2") // supports gzip encoding
