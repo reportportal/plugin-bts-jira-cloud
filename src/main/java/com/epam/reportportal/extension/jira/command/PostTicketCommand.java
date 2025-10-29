@@ -36,7 +36,6 @@ import com.epam.reportportal.extension.jira.api.model.IssueUpdateDetails;
 import com.epam.reportportal.extension.jira.api.model.LinkIssueRequestJsonBean;
 import com.epam.reportportal.extension.jira.api.model.LinkedIssue;
 import com.epam.reportportal.extension.jira.api.model.ProjectComponent;
-import com.epam.reportportal.extension.jira.api.model.SearchResults;
 import com.epam.reportportal.extension.jira.client.JiraRestClient;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
@@ -52,13 +51,13 @@ import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.epam.ta.reportportal.binary.DataStoreService;
 import com.epam.ta.reportportal.dao.ProjectRepository;
 import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.entity.integration.IntegrationParams;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -66,6 +65,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.ThreadUtils;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
@@ -176,6 +176,7 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
       // post binary data
       IssueBean issue = client.issuesApi().getIssue(issueKey, null, false, null, null, false, false);
       for (Map.Entry<String, String> binaryDataEntry : binaryData.entrySet()) {
+        ThreadUtils.sleep(Duration.of(1, ChronoUnit.SECONDS)); // 1 sec delay recommended by jira cloud support
         dataStoreService.load(binaryDataEntry.getKey())
             .ifPresent(inputStream -> addAttachment(issueKey, integration, inputStream, binaryDataEntry.getValue()));
       }
