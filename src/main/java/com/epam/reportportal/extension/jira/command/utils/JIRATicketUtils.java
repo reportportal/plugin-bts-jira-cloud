@@ -173,7 +173,7 @@ public class JIRATicketUtils {
               arrayOfValues.add(Map.entry("id", jn.get("id").asText()));
             }
           }
-          if (one.getFieldType().equalsIgnoreCase(IssueFieldType.ARRAY.name)) {
+          if (one.getFieldType().equalsIgnoreCase(IssueFieldType.ARRAY.getName())) {
             issueUpdateDetails.putFieldsItem(one.getId(), arrayOfValues);
           } else {
             issueUpdateDetails.putFieldsItem(one.getId(), arrayOfValues.get(0));
@@ -183,12 +183,8 @@ public class JIRATicketUtils {
           issueUpdateDetails.putFieldsItem(one.getId(), "ReportPortal autofield");
         }
       } else {
-        if (one.getFieldType().equalsIgnoreCase(IssueFieldType.ARRAY.name)) {
-          if (isLabelField(one, cimFieldInfo)) {
-            issueUpdateDetails.putFieldsItem(one.getId(), processLabels(one.getValue().get(0)));
-          } else {
-            issueUpdateDetails.putFieldsItem(one.getId(), one.getValue());
-          }
+        if (one.getFieldType().equalsIgnoreCase(IssueFieldType.ARRAY.getName())) {
+          issueUpdateDetails.putFieldsItem(one.getId(), one.getValue());
         } else if (one.getFieldType().equalsIgnoreCase(IssueFieldType.NUMBER.getName())) {
           issueUpdateDetails.putFieldsItem(one.getId(), Long.valueOf(one.getValue().get(0)));
         } else if (one.getFieldType().equalsIgnoreCase(IssueFieldType.USER.getName())) {
