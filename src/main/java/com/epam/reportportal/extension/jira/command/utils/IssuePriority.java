@@ -19,14 +19,13 @@ package com.epam.reportportal.extension.jira.command.utils;
 import java.util.Objects;
 
 /**
- * IssueSeverity enumerator<br>
- * Describe default severities from JIRA (a while)
+ * IssueSeverity enumerator<br> Describe default severities from JIRA (a while)
  *
  * @author Andrei_Ramanchuk
  */
 public enum IssuePriority {
 
-	//@formatter:off
+  //@formatter:off
 	BLOCKER(1),
 	CRITICAL(2),
 	MAJOR(3), 
@@ -34,35 +33,35 @@ public enum IssuePriority {
 	TRIVIAL(5);
 	//@formatter:on
 
-	private long priority;
+  private long priority;
 
-	IssuePriority(long value) {
-		this.priority = value;
-	}
+  IssuePriority(long value) {
+    this.priority = value;
+  }
 
-	public static IssuePriority findByName(String name) {
-		for (IssuePriority type : IssuePriority.values()) {
-			if (type.name().equalsIgnoreCase(name)) {
-				return type;
-			}
-		}
-		return null;
-	}
+  public static IssuePriority findByName(String name) {
+    for (IssuePriority type : IssuePriority.values()) {
+      if (type.name().equalsIgnoreCase(name)) {
+        return type;
+      }
+    }
+    return null;
+  }
 
-	public static IssuePriority findByPriority(String priority) {
-		for (IssuePriority issuePriority : IssuePriority.values()) {
-			if (Objects.equals(issuePriority.getValue(), Long.valueOf(priority))) {
-				return issuePriority;
-			}
-		}
-		return null;
-	}
+  public static IssuePriority findByPriority(String priority) {
+    for (IssuePriority issuePriority : IssuePriority.values()) {
+      if (Objects.equals(issuePriority.getValue(), Long.valueOf(priority))) {
+        return issuePriority;
+      }
+    }
+    return null;
+  }
 
-	public static boolean isPresent(String name) {
-		return null != findByName(name);
-	}
+  public static boolean isPresent(String name) {
+    return null != findByName(name);
+  }
 
-	public long getValue() {
-		return priority;
-	}
+  public long getValue() {
+    return priority;
+  }
 }

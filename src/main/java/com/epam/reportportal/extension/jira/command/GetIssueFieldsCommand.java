@@ -21,7 +21,7 @@ import static com.epam.reportportal.extension.jira.command.utils.IssueField.COMP
 import static com.epam.reportportal.extension.jira.command.utils.IssueField.FIX_VERSIONS_FIELD;
 import static com.epam.reportportal.extension.jira.command.utils.IssueField.ISSUE_TYPE_FIELD;
 import static com.epam.reportportal.extension.jira.command.utils.IssueField.PRIORITY_FIELD;
-import static com.epam.reportportal.rules.exception.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
+import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
 
 import com.epam.reportportal.extension.ProjectManagerCommand;
 import com.epam.reportportal.extension.jira.api.model.IssueCreateMetadata;
@@ -34,13 +34,13 @@ import com.epam.reportportal.extension.jira.api.model.Version;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
 import com.epam.reportportal.extension.jira.command.utils.JIRATicketUtils;
-import com.epam.reportportal.model.externalsystem.AllowedValue;
-import com.epam.reportportal.model.externalsystem.PostFormField;
-import com.epam.reportportal.rules.exception.ErrorType;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
-import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.reportportal.infrastructure.model.externalsystem.AllowedValue;
+import com.epam.reportportal.infrastructure.model.externalsystem.PostFormField;
+import com.epam.reportportal.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
+import com.epam.reportportal.infrastructure.persistence.entity.integration.Integration;
+import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
@@ -92,7 +92,8 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
       IssueTypeDetails issueType = jiraProject.getIssueTypes().stream()
           .filter(input -> issueTypeParam.equalsIgnoreCase(input.getName()))
           .findFirst()
-          .orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "Issue type '" + issueTypeParam + "' not found"));
+          .orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION,
+              "Issue type '" + issueTypeParam + "' not found"));
 
       IssueCreateMetadata issueCreateMetadata = client.issuesApi().getCreateIssueMeta(
           Collections.singletonList(jiraProject.getId()),
@@ -125,10 +126,10 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
         // Provide values for custom fields with predefined options
         if (issueField.getValue().getAllowedValues() != null) {
           allowed = issueField.getValue().getAllowedValues().stream()
-            .map(value -> (JsonNode) new ObjectMapper().valueToTree(value))
-            .filter(JIRATicketUtils::isCustomField)
-            .map(jn -> new AllowedValue(jn.get("id").asText(), jn.get("value").asText()))
-            .collect(Collectors.toList());
+              .map(value -> (JsonNode) new ObjectMapper().valueToTree(value))
+              .filter(JIRATicketUtils::isCustomField)
+              .map(jn -> new AllowedValue(jn.get("id").asText(), jn.get("value").asText()))
+              .collect(Collectors.toList());
         }
 
         if (fieldID.equalsIgnoreCase(COMPONENTS_FIELD.getValue())) {

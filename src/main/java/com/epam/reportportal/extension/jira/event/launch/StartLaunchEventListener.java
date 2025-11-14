@@ -16,7 +16,7 @@
 package com.epam.reportportal.extension.jira.event.launch;
 
 import com.epam.reportportal.extension.event.StartLaunchEvent;
-import com.epam.ta.reportportal.dao.LaunchRepository;
+import com.epam.reportportal.infrastructure.persistence.dao.LaunchRepository;
 import org.springframework.context.ApplicationListener;
 
 /**
@@ -24,14 +24,14 @@ import org.springframework.context.ApplicationListener;
  */
 public class StartLaunchEventListener implements ApplicationListener<StartLaunchEvent> {
 
-	private final LaunchRepository launchRepository;
+  private final LaunchRepository launchRepository;
 
-	public StartLaunchEventListener(LaunchRepository launchRepository) {
-		this.launchRepository = launchRepository;
-	}
+  public StartLaunchEventListener(LaunchRepository launchRepository) {
+    this.launchRepository = launchRepository;
+  }
 
-	@Override
-	public void onApplicationEvent(StartLaunchEvent event) {
+  @Override
+  public void onApplicationEvent(StartLaunchEvent event) {
 
-	}
+  }
 }

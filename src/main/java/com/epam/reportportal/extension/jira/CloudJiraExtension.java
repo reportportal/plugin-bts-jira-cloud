@@ -40,15 +40,15 @@ import com.epam.reportportal.extension.jira.event.plugin.PluginEventListener;
 import com.epam.reportportal.extension.jira.info.impl.PluginInfoProviderImpl;
 import com.epam.reportportal.extension.jira.utils.MemoizingSupplier;
 import com.epam.reportportal.extension.util.RequestEntityConverter;
-import com.epam.ta.reportportal.binary.DataStoreService;
-import com.epam.ta.reportportal.dao.IntegrationRepository;
-import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
-import com.epam.ta.reportportal.dao.LaunchRepository;
-import com.epam.ta.reportportal.dao.LogRepository;
-import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.dao.TicketRepository;
-import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
+import com.epam.reportportal.infrastructure.persistence.binary.DataStoreService;
+import com.epam.reportportal.infrastructure.persistence.dao.IntegrationRepository;
+import com.epam.reportportal.infrastructure.persistence.dao.IntegrationTypeRepository;
+import com.epam.reportportal.infrastructure.persistence.dao.LaunchRepository;
+import com.epam.reportportal.infrastructure.persistence.dao.LogRepository;
+import com.epam.reportportal.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.infrastructure.persistence.dao.TestItemRepository;
+import com.epam.reportportal.infrastructure.persistence.dao.TicketRepository;
+import com.epam.reportportal.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -233,10 +233,13 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 
   private Map<String, PluginCommand<?>> getCommands() {
     List<PluginCommand<?>> commands = new ArrayList<>();
-    commands.add(new UserSearchCommand(projectRepository, cloudJiraClientProviderSupplier.get(), organizationRepository));
+    commands.add(
+        new UserSearchCommand(projectRepository, cloudJiraClientProviderSupplier.get(), organizationRepository));
     commands.add(new TestConnectionCommand(cloudJiraClientProviderSupplier.get()));
-    commands.add(new GetIssueFieldsCommand(projectRepository, organizationRepository, cloudJiraClientProviderSupplier.get()));
-    commands.add(new GetIssueTypesCommand(projectRepository, cloudJiraClientProviderSupplier.get(), organizationRepository));
+    commands.add(
+        new GetIssueFieldsCommand(projectRepository, organizationRepository, cloudJiraClientProviderSupplier.get()));
+    commands.add(
+        new GetIssueTypesCommand(projectRepository, cloudJiraClientProviderSupplier.get(), organizationRepository));
     commands.add(new PostTicketCommand(projectRepository,
         requestEntityConverter,
         cloudJiraClientProviderSupplier.get(),

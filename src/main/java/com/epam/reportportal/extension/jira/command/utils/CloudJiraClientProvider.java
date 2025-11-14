@@ -17,9 +17,9 @@
 package com.epam.reportportal.extension.jira.command.utils;
 
 import com.epam.reportportal.extension.jira.client.JiraRestClient;
-import com.epam.reportportal.rules.exception.ErrorType;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.entity.integration.IntegrationParams;
+import com.epam.reportportal.infrastructure.persistence.entity.integration.IntegrationParams;
+import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import org.jasypt.util.text.BasicTextEncryptor;
 
 /**
@@ -44,8 +44,10 @@ public class CloudJiraClientProvider {
 
 
   public CloudJiraDetails extractAndDecryptDetails(IntegrationParams integrationParams) {
-    String providedUsername = getTextParamOrThrow(CloudJiraProperties.EMAIL, integrationParams, USER_EMAIL_NOT_SPECIFIED);
-    String credentials = textEncryptor.decrypt(getTextParamOrThrow(CloudJiraProperties.API_TOKEN, integrationParams, API_TOKEN_NOT_SPECIFIED));
+    String providedUsername = getTextParamOrThrow(CloudJiraProperties.EMAIL, integrationParams,
+        USER_EMAIL_NOT_SPECIFIED);
+    String credentials = textEncryptor.decrypt(
+        getTextParamOrThrow(CloudJiraProperties.API_TOKEN, integrationParams, API_TOKEN_NOT_SPECIFIED));
     String url = getTextParamOrThrow(CloudJiraProperties.URL, integrationParams, URL_NOT_SPECIFIED);
     return new CloudJiraDetails(providedUsername, credentials, url);
   }

@@ -16,10 +16,10 @@
 
 package com.epam.reportportal.extension.jira.utils;
 
-import com.epam.ta.reportportal.entity.attachment.Attachment;
-import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.entity.item.TestItemResults;
-import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.reportportal.infrastructure.persistence.entity.attachment.Attachment;
+import com.epam.reportportal.infrastructure.persistence.entity.item.TestItem;
+import com.epam.reportportal.infrastructure.persistence.entity.item.TestItemResults;
+import com.epam.reportportal.infrastructure.persistence.entity.log.Log;
 
 public class SampleData {
 
