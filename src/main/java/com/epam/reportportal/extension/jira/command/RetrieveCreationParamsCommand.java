@@ -15,16 +15,16 @@
  */
 package com.epam.reportportal.extension.jira.command;
 
-import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-import static com.epam.reportportal.rules.exception.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
+import static com.epam.reportportal.infrastructure.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
 
 import com.epam.reportportal.extension.CommonPluginCommand;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
-import com.epam.reportportal.rules.exception.ErrorType;
-import com.epam.reportportal.rules.exception.ReportPortalException;
+import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import com.google.common.collect.Maps;
 import java.util.Map;
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 
 
@@ -33,45 +33,48 @@ import org.jasypt.util.text.BasicTextEncryptor;
  */
 public class RetrieveCreationParamsCommand implements CommonPluginCommand<Map<String, Object>> {
 
-	private final BasicTextEncryptor textEncryptor;
+  private final BasicTextEncryptor textEncryptor;
 
-	public RetrieveCreationParamsCommand(BasicTextEncryptor textEncryptor) {
-		this.textEncryptor = textEncryptor;
-	}
+  public RetrieveCreationParamsCommand(BasicTextEncryptor textEncryptor) {
+    this.textEncryptor = textEncryptor;
+  }
 
-	@Override
-	public String getName() {
-		return "retrieveCreate";
-	}
+  @Override
+  public String getName() {
+    return "retrieveCreate";
+  }
 
-	@Override
-	//@param integration is always null because it can be not saved yet
-	public Map<String, Object> executeCommand(Map<String, Object> integrationParams) {
+  @Override
+  //@param integration is always null because it can be not saved yet
+  public Map<String, Object> executeCommand(Map<String, Object> integrationParams) {
 
-		expect(integrationParams, MapUtils::isNotEmpty).verify(ErrorType.BAD_REQUEST_ERROR, "No integration params provided");
+    expect(integrationParams, MapUtils::isNotEmpty).verify(ErrorType.BAD_REQUEST_ERROR,
+        "No integration params provided");
 
-		Map<String, Object> resultParams = Maps.newHashMapWithExpectedSize(CloudJiraProperties.values().length);
+    Map<String, Object> resultParams = Maps.newHashMapWithExpectedSize(CloudJiraProperties.values().length);
 
-		resultParams.put(CloudJiraProperties.PROJECT.getName(),
-				CloudJiraProperties.PROJECT.getParam(integrationParams)
-						.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "BTS project is not specified."))
-		);
-		resultParams.put(CloudJiraProperties.URL.getName(),
-				CloudJiraProperties.URL.getParam(integrationParams)
-						.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "BTS url is not specified."))
-		);
+    resultParams.put(CloudJiraProperties.PROJECT.getName(),
+        CloudJiraProperties.PROJECT.getParam(integrationParams)
+            .orElseThrow(
+                () -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "BTS project is not specified."))
+    );
+    resultParams.put(CloudJiraProperties.URL.getName(),
+        CloudJiraProperties.URL.getParam(integrationParams)
+            .orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "BTS url is not specified."))
+    );
 
+    resultParams.put(CloudJiraProperties.EMAIL.getName(),
+        CloudJiraProperties.EMAIL.getParam(integrationParams)
+            .orElseThrow(
+                () -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "Email value is not specified."))
+    );
 
-		resultParams.put(CloudJiraProperties.EMAIL.getName(),
-				CloudJiraProperties.EMAIL.getParam(integrationParams)
-						.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "Email value is not specified."))
-		);
+    resultParams.put(CloudJiraProperties.API_TOKEN.getName(),
+        textEncryptor.encrypt(CloudJiraProperties.API_TOKEN.getParam(integrationParams)
+            .orElseThrow(
+                () -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "API token value is not specified.")))
+    );
 
-		resultParams.put(CloudJiraProperties.API_TOKEN.getName(),
-				textEncryptor.encrypt(CloudJiraProperties.API_TOKEN.getParam(integrationParams)
-						.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "API token value is not specified.")))
-		);
-
-		return resultParams;
-	}
+    return resultParams;
+  }
 }

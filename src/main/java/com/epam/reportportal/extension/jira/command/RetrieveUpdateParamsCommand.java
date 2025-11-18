@@ -28,29 +28,31 @@ import org.jasypt.util.text.BasicTextEncryptor;
  */
 public class RetrieveUpdateParamsCommand implements CommonPluginCommand<Map<String, Object>> {
 
-	private final BasicTextEncryptor textEncryptor;
+  private final BasicTextEncryptor textEncryptor;
 
-	public RetrieveUpdateParamsCommand(BasicTextEncryptor textEncryptor) {
-		this.textEncryptor = textEncryptor;
-	}
+  public RetrieveUpdateParamsCommand(BasicTextEncryptor textEncryptor) {
+    this.textEncryptor = textEncryptor;
+  }
 
-	@Override
-	public String getName() {
-		return "retrieveUpdated";
-	}
+  @Override
+  public String getName() {
+    return "retrieveUpdated";
+  }
 
-	@Override
-	//@param integration is always null because it can be not saved yet
-	public Map<String, Object> executeCommand(Map<String, Object> integrationParams) {
-		Map<String, Object> resultParams = Maps.newHashMapWithExpectedSize(integrationParams.size());
-		CloudJiraProperties.URL.getParam(integrationParams).ifPresent(url -> resultParams.put(CloudJiraProperties.URL.getName(), url));
-		CloudJiraProperties.PROJECT.getParam(integrationParams)
-				.ifPresent(url -> resultParams.put(CloudJiraProperties.PROJECT.getName(), url));
-		CloudJiraProperties.EMAIL.getParam(integrationParams).ifPresent(url -> resultParams.put(CloudJiraProperties.EMAIL.getName(), url));
-		CloudJiraProperties.API_TOKEN.getParam(integrationParams)
-				.ifPresent(token -> resultParams.put(CloudJiraProperties.API_TOKEN.getName(), textEncryptor.encrypt(token)));
-		Optional.ofNullable(integrationParams.get("defectFormFields"))
-				.ifPresent(defectFormFields -> resultParams.put("defectFormFields", defectFormFields));
-		return resultParams;
-	}
+  @Override
+  //@param integration is always null because it can be not saved yet
+  public Map<String, Object> executeCommand(Map<String, Object> integrationParams) {
+    Map<String, Object> resultParams = Maps.newHashMapWithExpectedSize(integrationParams.size());
+    CloudJiraProperties.URL.getParam(integrationParams)
+        .ifPresent(url -> resultParams.put(CloudJiraProperties.URL.getName(), url));
+    CloudJiraProperties.PROJECT.getParam(integrationParams)
+        .ifPresent(url -> resultParams.put(CloudJiraProperties.PROJECT.getName(), url));
+    CloudJiraProperties.EMAIL.getParam(integrationParams)
+        .ifPresent(url -> resultParams.put(CloudJiraProperties.EMAIL.getName(), url));
+    CloudJiraProperties.API_TOKEN.getParam(integrationParams)
+        .ifPresent(token -> resultParams.put(CloudJiraProperties.API_TOKEN.getName(), textEncryptor.encrypt(token)));
+    Optional.ofNullable(integrationParams.get("defectFormFields"))
+        .ifPresent(defectFormFields -> resultParams.put("defectFormFields", defectFormFields));
+    return resultParams;
+  }
 }

@@ -20,8 +20,8 @@ import com.epam.reportportal.extension.jira.event.EventHandlerFactory;
 import com.epam.reportportal.extension.jira.event.handler.EventHandler;
 import com.epam.reportportal.extension.jira.event.handler.plugin.PluginLoadedEventHandler;
 import com.epam.reportportal.extension.jira.info.PluginInfoProvider;
-import com.epam.ta.reportportal.dao.IntegrationRepository;
-import com.epam.ta.reportportal.dao.IntegrationTypeRepository;
+import com.epam.reportportal.infrastructure.persistence.dao.IntegrationRepository;
+import com.epam.reportportal.infrastructure.persistence.dao.IntegrationTypeRepository;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,20 +30,21 @@ import java.util.Map;
  */
 public class PluginEventHandlerFactory implements EventHandlerFactory<PluginEvent> {
 
-	public static final String LOAD_KEY = "load";
+  public static final String LOAD_KEY = "load";
 
-	private final Map<String, EventHandler<PluginEvent>> eventHandlerMapping;
+  private final Map<String, EventHandler<PluginEvent>> eventHandlerMapping;
 
-	public PluginEventHandlerFactory(IntegrationTypeRepository integrationTypeRepository, IntegrationRepository integrationRepository,
-			PluginInfoProvider pluginInfoProvider) {
-		this.eventHandlerMapping = new HashMap<>();
-		this.eventHandlerMapping.put(LOAD_KEY,
-				new PluginLoadedEventHandler(integrationTypeRepository, integrationRepository, pluginInfoProvider)
-		);
-	}
+  public PluginEventHandlerFactory(IntegrationTypeRepository integrationTypeRepository,
+      IntegrationRepository integrationRepository,
+      PluginInfoProvider pluginInfoProvider) {
+    this.eventHandlerMapping = new HashMap<>();
+    this.eventHandlerMapping.put(LOAD_KEY,
+        new PluginLoadedEventHandler(integrationTypeRepository, integrationRepository, pluginInfoProvider)
+    );
+  }
 
-	@Override
-	public EventHandler<PluginEvent> getEventHandler(String key) {
-		return eventHandlerMapping.get(key);
-	}
+  @Override
+  public EventHandler<PluginEvent> getEventHandler(String key) {
+    return eventHandlerMapping.get(key);
+  }
 }

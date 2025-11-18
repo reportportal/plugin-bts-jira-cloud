@@ -18,13 +18,13 @@ package com.epam.reportportal.extension.jira.command;
 
 import static com.epam.reportportal.extension.jira.command.utils.JIRATicketUtils.getAuthorizationHeader;
 import static com.epam.reportportal.extension.util.CommandParamUtils.ENTITY_PARAM;
-import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.reportportal.rules.exception.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.in;
-import static com.epam.ta.reportportal.commons.Predicates.isNull;
-import static com.epam.ta.reportportal.commons.Predicates.not;
+import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.equalTo;
+import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.in;
+import static com.epam.reportportal.infrastructure.persistence.commons.Predicates.isNull;
+import static com.epam.reportportal.infrastructure.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.infrastructure.rules.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.reportportal.infrastructure.rules.exception.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toSet;
 
 import com.epam.reportportal.extension.ProjectMemberCommand;
@@ -36,7 +36,6 @@ import com.epam.reportportal.extension.jira.api.model.IssueUpdateDetails;
 import com.epam.reportportal.extension.jira.api.model.LinkIssueRequestJsonBean;
 import com.epam.reportportal.extension.jira.api.model.LinkedIssue;
 import com.epam.reportportal.extension.jira.api.model.ProjectComponent;
-import com.epam.reportportal.extension.jira.api.model.SearchResults;
 import com.epam.reportportal.extension.jira.client.JiraRestClient;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
@@ -45,21 +44,19 @@ import com.epam.reportportal.extension.jira.command.utils.JIRATicketDescriptionS
 import com.epam.reportportal.extension.jira.command.utils.JIRATicketUtils;
 import com.epam.reportportal.extension.util.RequestEntityConverter;
 import com.epam.reportportal.extension.util.RequestEntityValidator;
-import com.epam.reportportal.model.externalsystem.PostFormField;
-import com.epam.reportportal.model.externalsystem.PostTicketRQ;
-import com.epam.reportportal.model.externalsystem.Ticket;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.binary.DataStoreService;
-import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.dao.organization.OrganizationRepositoryCustom;
-import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.entity.integration.IntegrationParams;
+import com.epam.reportportal.infrastructure.model.externalsystem.PostFormField;
+import com.epam.reportportal.infrastructure.model.externalsystem.PostTicketRQ;
+import com.epam.reportportal.infrastructure.model.externalsystem.Ticket;
+import com.epam.reportportal.infrastructure.persistence.binary.DataStoreService;
+import com.epam.reportportal.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
+import com.epam.reportportal.infrastructure.persistence.entity.integration.Integration;
+import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -152,7 +149,8 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
 
         // FIXME : compares with itself by mistake
         validComponents.forEach(component -> expect(component, in(validComponents))
-            .verify(UNABLE_INTERACT_WITH_INTEGRATION, formattedSupplier("Component '{}' not exists in the external system", component)));
+            .verify(UNABLE_INTERACT_WITH_INTEGRATION,
+                formattedSupplier("Component '{}' not exists in the external system", component)));
       }
 
       // TODO consider to modify code below - project cached
@@ -160,9 +158,11 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
           .filter(input -> issueTypeStr.equalsIgnoreCase(input.getName()))
           .findFirst()
           .orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION,
-              formattedSupplier("Unable post issue with type '{}' for project '{}'.", issType.getValue().getFirst(), integration.getProject())));
+              formattedSupplier("Unable post issue with type '{}' for project '{}'.", issType.getValue().getFirst(),
+                  integration.getProject())));
 
-      IssueUpdateDetails issueRequest = JIRATicketUtils.toIssueInput(client, jiraProject, projectIssueType, ticketRQ, descriptionService);
+      IssueUpdateDetails issueRequest = JIRATicketUtils.toIssueInput(client, jiraProject, projectIssueType, ticketRQ,
+          descriptionService);
 
 
       /*
@@ -239,15 +239,16 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
         var outwardIssue = new LinkedIssue();
         outwardIssue.setKey(issue.getKey());
 
-
-        LinkIssueRequestJsonBean linkIssuesInput = new LinkIssueRequestJsonBean(null, inwardIssue, outwardIssue, issueToLink);
+        LinkIssueRequestJsonBean linkIssuesInput = new LinkIssueRequestJsonBean(null, inwardIssue, outwardIssue,
+            issueToLink);
         jiraRestClient.issueLinksApi().linkIssues(linkIssuesInput);
       }
     }
   }
 
   @SneakyThrows
-  public void addAttachment(String issueKey, Integration integration, InputStream data, String filename) throws RestClientException {
+  public void addAttachment(String issueKey, Integration integration, InputStream data, String filename)
+      throws RestClientException {
     var details = cloudJiraClientProvider.extractAndDecryptDetails(integration.getParams());
 
     MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create()

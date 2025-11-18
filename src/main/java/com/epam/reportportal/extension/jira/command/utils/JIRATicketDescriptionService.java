@@ -16,24 +16,24 @@
 
 package com.epam.reportportal.extension.jira.command.utils;
 
-import static com.epam.ta.reportportal.commons.EntityUtils.TO_DATE;
+import static com.epam.reportportal.infrastructure.persistence.commons.EntityUtils.TO_DATE;
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.model.externalsystem.PostTicketRQ;
-import com.epam.reportportal.rules.exception.ErrorType;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.dao.LogRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.attachment.Attachment;
-import com.epam.ta.reportportal.entity.item.TestItem;
-import com.epam.ta.reportportal.entity.log.Log;
+import com.epam.reportportal.infrastructure.model.externalsystem.PostTicketRQ;
+import com.epam.reportportal.infrastructure.persistence.dao.LogRepository;
+import com.epam.reportportal.infrastructure.persistence.dao.TestItemRepository;
+import com.epam.reportportal.infrastructure.persistence.entity.attachment.Attachment;
+import com.epam.reportportal.infrastructure.persistence.entity.item.TestItem;
+import com.epam.reportportal.infrastructure.persistence.entity.log.Log;
+import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.List;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.mime.MimeType;
@@ -124,8 +124,10 @@ public class JIRATicketDescriptionService {
               Collections.singletonList(item.getItemId()), ticketRQ.getNumberOfLogs());
           if (CollectionUtils.isNotEmpty(logs) && (ticketRQ.getIsIncludeLogs() || ticketRQ.getIsIncludeScreenshots())) {
             descriptionBuilder.append("h3.*Test execution log:*\n")
-                .append("{panel:title=Test execution log|borderStyle=solid|borderColor=#ccc|titleColor=#34302D|titleBGColor=#6DB33F}");
-            logs.forEach(log -> updateWithLog(descriptionBuilder, log, ticketRQ.getIsIncludeLogs(), ticketRQ.getIsIncludeScreenshots()));
+                .append(
+                    "{panel:title=Test execution log|borderStyle=solid|borderColor=#ccc|titleColor=#34302D|titleBGColor=#6DB33F}");
+            logs.forEach(log -> updateWithLog(descriptionBuilder, log, ticketRQ.getIsIncludeLogs(),
+                ticketRQ.getIsIncludeScreenshots()));
             descriptionBuilder.append("{panel}\n");
           }
         }));

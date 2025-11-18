@@ -21,13 +21,13 @@ import com.epam.reportportal.extension.jira.api.model.SearchResults;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
 import com.epam.reportportal.extension.jira.command.utils.JIRATicketUtils;
-import com.epam.reportportal.model.externalsystem.Ticket;
-import com.epam.reportportal.rules.exception.ErrorType;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.dao.IntegrationRepository;
-import com.epam.ta.reportportal.dao.TicketRepository;
-import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.entity.integration.IntegrationParams;
+import com.epam.reportportal.infrastructure.model.externalsystem.Ticket;
+import com.epam.reportportal.infrastructure.persistence.dao.IntegrationRepository;
+import com.epam.reportportal.infrastructure.persistence.dao.TicketRepository;
+import com.epam.reportportal.infrastructure.persistence.entity.integration.Integration;
+import com.epam.reportportal.infrastructure.persistence.entity.integration.IntegrationParams;
+import com.epam.reportportal.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.infrastructure.rules.exception.ReportPortalException;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.commons.collections4.CollectionUtils;
@@ -57,20 +57,24 @@ public class GetIssueCommand implements CommonPluginCommand<Ticket> {
     var ticketId = Optional.ofNullable(params.get(TICKET_ID))
         .map(String::valueOf)
         .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, TICKET_ID + "  must be provided"));
-    final com.epam.ta.reportportal.entity.bts.Ticket ticket = ticketRepository.findByTicketId(ticketId)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Ticket not found with id " + TICKET_ID));
+    var ticket = ticketRepository.findByTicketId(ticketId)
+        .orElseThrow(
+            () -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Ticket not found with id " + TICKET_ID));
     final Long projectId = (Long) Optional.ofNullable(params.get(PROJECT_ID))
         .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, PROJECT_ID + " must be provided"));
 
     final String btsUrl = CloudJiraProperties.URL.getParam(params)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Url is not specified."));
+        .orElseThrow(
+            () -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Url is not specified."));
     final String btsProject = CloudJiraProperties.PROJECT.getParam(params)
-        .orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Project is not specified."));
+        .orElseThrow(
+            () -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Project is not specified."));
 
     final Integration integration =
         integrationRepository.findProjectBtsByUrlAndLinkedProject(btsUrl, btsProject, projectId)
             .orElseGet(() -> integrationRepository.findGlobalBtsByUrlAndLinkedProject(btsUrl, btsProject)
-                .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Integration with provided url and project isn't found")));
+                .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR,
+                    "Integration with provided url and project isn't found")));
     return getTicket(ticketId, integration.getParams());
   }
 
@@ -78,7 +82,8 @@ public class GetIssueCommand implements CommonPluginCommand<Ticket> {
     var client = cloudJiraClientProvider.getApiClient(details);
     SearchResults issues;
     try {
-      var jql = String.format("project=%s and key=%s", CloudJiraProperties.PROJECT.getParam(details.getParams()).get(), ticketId);
+      var jql = String.format("project=%s and key=%s", CloudJiraProperties.PROJECT.getParam(details.getParams()).get(),
+          ticketId);
       issues = client.issueSearchApi().searchForIssuesUsingJql(jql, null, 50, "", null, null, null, null, null);
 
     } catch (Exception e) {
@@ -86,7 +91,8 @@ public class GetIssueCommand implements CommonPluginCommand<Ticket> {
     }
     if (CollectionUtils.isNotEmpty(issues.getIssues())) {
       return JIRATicketUtils.toTicket(issues.getIssues().getFirst(), CloudJiraProperties.URL.getParam(details)
-          .orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Url is not specified.")));
+          .orElseThrow(
+              () -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Url is not specified.")));
     } else {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Ticket with id {} is not found", ticketId);
     }
