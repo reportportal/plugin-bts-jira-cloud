@@ -22,8 +22,7 @@ import com.epam.reportportal.extension.NamedPluginCommand;
 import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
-import com.epam.reportportal.extension.event.PluginEvent;
-import com.epam.reportportal.extension.event.StartLaunchEvent;
+import com.epam.reportportal.core.events.domain.PluginUploadedEvent;
 import com.epam.reportportal.extension.jira.command.GetIssueCommand;
 import com.epam.reportportal.extension.jira.command.GetIssueFieldsCommand;
 import com.epam.reportportal.extension.jira.command.GetIssueTypesCommand;
@@ -34,16 +33,13 @@ import com.epam.reportportal.extension.jira.command.TestConnectionCommand;
 import com.epam.reportportal.extension.jira.command.UserSearchCommand;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.JIRATicketDescriptionService;
-import com.epam.reportportal.extension.jira.event.launch.StartLaunchEventListener;
-import com.epam.reportportal.extension.jira.event.plugin.PluginEventHandlerFactory;
-import com.epam.reportportal.extension.jira.event.plugin.PluginEventListener;
+import com.epam.reportportal.extension.jira.event.plugin.PluginLoadedEventListener;
 import com.epam.reportportal.extension.jira.info.impl.PluginInfoProviderImpl;
 import com.epam.reportportal.extension.jira.utils.MemoizingSupplier;
 import com.epam.reportportal.extension.util.RequestEntityConverter;
 import com.epam.reportportal.infrastructure.persistence.binary.DataStoreService;
 import com.epam.reportportal.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.IntegrationTypeRepository;
-import com.epam.reportportal.infrastructure.persistence.dao.LaunchRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.TestItemRepository;
@@ -98,8 +94,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
   private final ObjectMapper objectMapper;
   private final RequestEntityConverter requestEntityConverter;
 
-  private final Supplier<ApplicationListener<PluginEvent>> pluginLoadedListenerSupplier;
-  private final Supplier<ApplicationListener<StartLaunchEvent>> startLaunchEventListenerSupplier;
+  private final Supplier<ApplicationListener<PluginUploadedEvent>> pluginLoadedListenerSupplier;
 
   private final Supplier<CloudJiraClientProvider> cloudJiraClientProviderSupplier;
 
@@ -123,9 +118,6 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
   private OrganizationRepositoryCustom organizationRepository;
 
   @Autowired
-  private LaunchRepository launchRepository;
-
-  @Autowired
   private LogRepository logRepository;
 
   @Autowired
@@ -143,12 +135,10 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
         .orElse("");
     objectMapper = configureObjectMapper();
 
-    pluginLoadedListenerSupplier = new MemoizingSupplier<>(() -> new PluginEventListener(
-        PLUGIN_ID, new PluginEventHandlerFactory(integrationTypeRepository, integrationRepository,
+    pluginLoadedListenerSupplier = new MemoizingSupplier<>(() -> new PluginLoadedEventListener(
+        PLUGIN_ID, integrationTypeRepository, integrationRepository,
         new PluginInfoProviderImpl(resourcesDir, BINARY_DATA_PROPERTIES_FILE_ID)
-    )));
-    startLaunchEventListenerSupplier =
-        new MemoizingSupplier<>(() -> new StartLaunchEventListener(launchRepository));
+    ));
 
     requestEntityConverter = new RequestEntityConverter(objectMapper);
 
@@ -204,7 +194,6 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
         ApplicationEventMulticaster.class
     );
     applicationEventMulticaster.addApplicationListener(pluginLoadedListenerSupplier.get());
-    applicationEventMulticaster.addApplicationListener(startLaunchEventListenerSupplier.get());
   }
 
   @Override
@@ -218,7 +207,6 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
         ApplicationEventMulticaster.class
     );
     applicationEventMulticaster.removeApplicationListener(pluginLoadedListenerSupplier.get());
-    applicationEventMulticaster.removeApplicationListener(startLaunchEventListenerSupplier.get());
   }
 
   private Map<String, CommonPluginCommand<?>> getCommonCommands() {
