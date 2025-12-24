@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.epam.reportportal.extension.jira.event.handler.plugin;
+package com.epam.reportportal.extension.jira.event.plugin;
 
-import com.epam.reportportal.extension.event.PluginEvent;
-import com.epam.reportportal.extension.jira.event.handler.EventHandler;
+import com.epam.reportportal.core.events.domain.PluginUploadedEvent;
 import com.epam.reportportal.extension.jira.info.PluginInfoProvider;
 import com.epam.reportportal.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.infrastructure.persistence.dao.IntegrationTypeRepository;
@@ -26,30 +25,46 @@ import com.epam.reportportal.infrastructure.persistence.entity.integration.Integ
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
+import org.springframework.context.ApplicationListener;
 
 /**
+ * Event listener for plugin loaded events.
+ * Updates integration type information when the Jira Cloud plugin is uploaded.
+ *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
-public class PluginLoadedEventHandler implements EventHandler<PluginEvent> {
+public class PluginLoadedEventListener implements ApplicationListener<PluginUploadedEvent> {
 
+  private final String pluginId;
   private final IntegrationTypeRepository integrationTypeRepository;
   private final IntegrationRepository integrationRepository;
   private final PluginInfoProvider pluginInfoProvider;
 
-  public PluginLoadedEventHandler(IntegrationTypeRepository integrationTypeRepository,
+  public PluginLoadedEventListener(String pluginId,
+      IntegrationTypeRepository integrationTypeRepository,
       IntegrationRepository integrationRepository,
       PluginInfoProvider pluginInfoProvider) {
+    this.pluginId = pluginId;
     this.integrationTypeRepository = integrationTypeRepository;
     this.integrationRepository = integrationRepository;
     this.pluginInfoProvider = pluginInfoProvider;
   }
 
   @Override
-  public void handle(PluginEvent event) {
-    integrationTypeRepository.findByName(event.getPluginId()).ifPresent(integrationType -> {
-      createIntegration(event.getPluginId(), integrationType);
+  public void onApplicationEvent(PluginUploadedEvent event) {
+    if (!supports(event)) {
+      return;
+    }
+
+    String eventPluginId = event.getPluginActivityResource().getName();
+    integrationTypeRepository.findByName(eventPluginId).ifPresent(integrationType -> {
+      createIntegration(eventPluginId, integrationType);
       integrationTypeRepository.save(pluginInfoProvider.provide(integrationType));
     });
+  }
+
+  private boolean supports(PluginUploadedEvent event) {
+    return pluginId.equals(event.getPluginActivityResource().getName());
   }
 
   private void createIntegration(String name, IntegrationType integrationType) {
@@ -65,5 +80,4 @@ public class PluginLoadedEventHandler implements EventHandler<PluginEvent> {
       integrationRepository.save(integration);
     }
   }
-
 }
