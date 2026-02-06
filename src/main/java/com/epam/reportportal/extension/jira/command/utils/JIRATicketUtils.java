@@ -184,7 +184,9 @@ public class JIRATicketUtils {
         }
       } else {
         if (one.getFieldType().equalsIgnoreCase(IssueFieldType.ARRAY.getName())) {
-          issueUpdateDetails.putFieldsItem(one.getId(), one.getValue());
+          List<Object> arrayOfValues = new ArrayList<>();
+          one.getValue().forEach(value -> arrayOfValues.add(Map.entry("value", value)));
+          issueUpdateDetails.putFieldsItem(one.getId(), arrayOfValues);
         } else if (one.getFieldType().equalsIgnoreCase(IssueFieldType.NUMBER.getName())) {
           issueUpdateDetails.putFieldsItem(one.getId(), Long.valueOf(one.getValue().get(0)));
         } else if (one.getFieldType().equalsIgnoreCase(IssueFieldType.USER.getName())) {
