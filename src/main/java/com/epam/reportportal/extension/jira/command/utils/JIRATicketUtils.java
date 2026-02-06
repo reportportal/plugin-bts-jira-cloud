@@ -164,7 +164,7 @@ public class JIRATicketUtils {
 
       var cimFieldInfo = cimIssueType.getFirst().getFields().get(one.getId());
       // Arrays and fields with 'allowedValues' handler
-      if (cimFieldInfo.getAllowedValues() != null) {
+      if (CollectionUtils.isNotEmpty(cimFieldInfo.getAllowedValues())) {
         try {
           List<Object> arrayOfValues = new ArrayList<>();
           for (Object o : new ArrayList<>(cimFieldInfo.getAllowedValues())) {
