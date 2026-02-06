@@ -2,9 +2,10 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.7'
     id 'java'
     id 'jacoco'
-    id "com.github.node-gradle.node" version "2.2.1"
+    id "com.github.node-gradle.node" version "7.1.0"
     id "org.openapi.generator" version "7.12.0"
     id "org.springframework.boot" version "${springBootVersion}" apply false
+    id 'com.gradleup.shadow' version '9.3.1'
 }
 
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
@@ -19,11 +20,11 @@ apply from: scriptsUrl + '/release-fat.gradle'
 apply from: scriptsUrl + '/signing.gradle'
 
 repositories {
-    mavenCentral { url "https://repo1.maven.org/maven2" }
-    maven { url "https://packages.atlassian.com/maven/repository/public" }
+    mavenCentral { url = "https://repo1.maven.org/maven2" }
+    maven { url = "https://packages.atlassian.com/maven/repository/public" }
 
     if (!releaseMode) {
-        maven { url 'https://jitpack.io' }
+        maven { url = 'https://jitpack.io' }
     }
 }
 
@@ -36,8 +37,8 @@ dependencies {
         implementation 'com.epam.reportportal:service-api'
         annotationProcessor 'com.epam.reportportal:service-api'
     } else {
-        implementation 'com.github.reportportal:service-api:a47f5cf'
-        annotationProcessor 'com.github.reportportal:service-api:a47f5cf'
+        implementation 'com.github.reportportal:service-api:7044a29'
+        annotationProcessor 'com.github.reportportal:service-api:7044a29'
     }
     implementation 'jakarta.el:jakarta.el-api:6.0.1'
     implementation 'org.glassfish:jakarta.el:4.0.2'
@@ -49,7 +50,8 @@ dependencies {
     testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
     testImplementation('org.junit.jupiter:junit-jupiter:5.11.4')
-    testImplementation "org.mockito:mockito-junit-jupiter:5.14.2"
+    testImplementation "org.mockito:mockito-junit-jupiter:5.21.0"
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
 }
 
@@ -83,9 +85,7 @@ test {
 
 build.dependsOn jacocoTestReport
 
-artifacts {
-    archives shadowJar
-}
+assemble.dependsOn shadowJar
 
 sourceSets {
     main {
@@ -125,7 +125,7 @@ shadowJar {
         into("/resources")
     }
     configurations = [project.configurations.compileClasspath]
-    zip64 true
+    zip64 = true
     dependencies {
         include(dependency("jakarta.ws.rs:jakarta.ws.rs-api:.*"))
         include(dependency("org.apache.tomcat:tomcat-annotations-api:.*"))
