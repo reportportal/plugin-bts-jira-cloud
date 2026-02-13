@@ -21,8 +21,6 @@ apply from: scriptsUrl + '/signing.gradle'
 
 repositories {
     mavenCentral { url = "https://repo1.maven.org/maven2" }
-    maven { url = "https://packages.atlassian.com/maven/repository/public" }
-
     if (!releaseMode) {
         maven { url = 'https://jitpack.io' }
     }
