@@ -99,7 +99,8 @@ public class JIRATicketUtils {
 
     ProjectIssueCreateMetadata project = issueCreateMetadata.getProjects().get(0);
     BusinessRule.expect(project, Predicates.notNull())
-        .verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, String.format("Project %s not found", jiraProject.getKey()));
+        .verify(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
+            String.format("Project %s not found", jiraProject.getKey()));
 
     List<IssueTypeIssueCreateMetadata> cimIssueType = project.getIssuetypes();
 
@@ -117,7 +118,8 @@ public class JIRATicketUtils {
 
       // Skip issuetype and project fields cause got them in
       // issueInputBuilder already
-      if (one.getId().equalsIgnoreCase(IssueField.ISSUE_TYPE_FIELD.value) || one.getId().equalsIgnoreCase(IssueField.PROJECT_FIELD.value)) {
+      if (one.getId().equalsIgnoreCase(IssueField.ISSUE_TYPE_FIELD.value)
+          || one.getId().equalsIgnoreCase(IssueField.PROJECT_FIELD.value)) {
         continue;
       }
 
@@ -182,9 +184,7 @@ public class JIRATicketUtils {
         }
       } else {
         if (one.getFieldType().equalsIgnoreCase(IssueFieldType.ARRAY.getName())) {
-          List<Object> arrayOfValues = new ArrayList<>();
-          one.getValue().forEach(value -> arrayOfValues.add(Map.entry("value", value)));
-          issueUpdateDetails.putFieldsItem(one.getId(), arrayOfValues);
+          issueUpdateDetails.putFieldsItem(one.getId(), one.getValue());
         } else if (one.getFieldType().equalsIgnoreCase(IssueFieldType.NUMBER.getName())) {
           issueUpdateDetails.putFieldsItem(one.getId(), Long.valueOf(one.getValue().get(0)));
         } else if (one.getFieldType().equalsIgnoreCase(IssueFieldType.USER.getName())) {

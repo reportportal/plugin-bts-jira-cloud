@@ -2,9 +2,10 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.7'
     id 'java'
     id 'jacoco'
-    id "com.github.node-gradle.node" version "2.2.1"
+    id "com.github.node-gradle.node" version "7.1.0"
     id "org.openapi.generator" version "7.16.0"
-    id "org.springframework.boot" version "3.4.2" apply false
+    id "org.springframework.boot" version "${springBootVersion}" apply false
+    id 'com.gradleup.shadow' version '9.3.1'
 }
 
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
@@ -19,11 +20,9 @@ apply from: scriptsUrl + '/release-fat.gradle'
 apply from: scriptsUrl + '/signing.gradle'
 
 repositories {
-    mavenCentral { url "https://repo1.maven.org/maven2" }
-    maven { url "https://packages.atlassian.com/maven/repository/public" }
-
+    mavenCentral { url = "https://repo1.maven.org/maven2" }
     if (!releaseMode) {
-        maven { url 'https://jitpack.io' }
+        maven { url = 'https://jitpack.io' }
     }
 }
 
@@ -59,15 +58,16 @@ dependencies {
     testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
     testImplementation('org.junit.jupiter:junit-jupiter:5.11.4')
-    testImplementation "org.mockito:mockito-junit-jupiter:5.14.2"
+    testImplementation "org.mockito:mockito-junit-jupiter:5.21.0"
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
 }
 
 sourceSets {
     main {
         java {
-            srcDirs "$buildDir/generated/src/main/java"
-            exclude("$buildDir/generated/src/main/java/com/epam/reportportal/api/jira/MyselfApi.java")
+            srcDirs layout.buildDirectory.dir("generated/src/main/java").get().asFile.path
+            exclude("${layout.buildDirectory.dir("generated/src/main/java").get().asFile.path}/com/epam/reportportal/api/jira/MyselfApi.java")
         }
     }
 }
@@ -76,7 +76,7 @@ sourceSets {
 tasks.register('generateJiraApi', GenerateTask) {
     generatorName.set("java")
     inputSpec.set("$rootDir/src/main/resources/openapi/swagger-v3.v3.json")
-    outputDir.set("$buildDir/generated")
+    outputDir.set(layout.buildDirectory.dir("generated").get().asFile.path)
     configFile.set("$rootDir/src/main/resources/openapi/config.json")
     ignoreFileOverride = "${projectDir.path}/.openapi-generator-ignore"
     skipOverwrite.set(true)
@@ -93,9 +93,7 @@ test {
 
 build.dependsOn jacocoTestReport
 
-artifacts {
-    archives shadowJar
-}
+assemble.dependsOn shadowJar
 
 sourceSets {
     main {
@@ -135,7 +133,7 @@ shadowJar {
         into("/resources")
     }
     configurations = [project.configurations.compileClasspath]
-    zip64 true
+    zip64 = true
     dependencies {
         include(dependency("jakarta.ws.rs:jakarta.ws.rs-api:.*"))
         include(dependency("org.apache.tomcat:tomcat-annotations-api:.*"))
