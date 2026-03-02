@@ -28,7 +28,7 @@ repositories {
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.14.3' : 'com.epam.reportportal:commons-bom:5.14.3')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.15.1' : 'com.epam.reportportal:commons-bom:5.15.1')
     }
 }
 ext['spring-boot.version'] = "${springBootVersion}"
