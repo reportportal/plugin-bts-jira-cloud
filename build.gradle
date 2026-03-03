@@ -21,9 +21,7 @@ apply from: scriptsUrl + '/signing.gradle'
 
 repositories {
     mavenCentral { url = "https://repo1.maven.org/maven2" }
-    if (!releaseMode) {
-        maven { url = 'https://jitpack.io' }
-    }
+    maven { url = 'https://jitpack.io' }
 }
 
 dependencyManagement {
@@ -36,15 +34,10 @@ ext['spring-boot.version'] = "${springBootVersion}"
 dependencies {
     // ALL new dependencies should be included in shadowJar plugin!
     // transitive dependencies may be required as well. could be checked in runtime only!
-    if (releaseMode) {
-        implementation 'com.epam.reportportal:commons-dao'
-        implementation 'com.epam.reportportal:plugin-api'
-        annotationProcessor 'com.epam.reportportal:plugin-api'
-    } else {
-        implementation 'com.github.reportportal:commons-dao:6298e53'
-        implementation 'com.github.reportportal:plugin-api:8cd6958'
-        annotationProcessor 'com.github.reportportal:plugin-api:8cd6958'
-    }
+    implementation 'com.github.reportportal:commons-dao:5.15.1'
+    implementation 'com.github.reportportal:plugin-api:5.15.0'
+    annotationProcessor 'com.github.reportportal:plugin-api:5.15.0'
+
 
     implementation("org.apache.httpcomponents.client5:httpclient5:5.4.2") // supports gzip encoding
     implementation "org.hibernate.validator:hibernate-validator:8.0.2.Final"
