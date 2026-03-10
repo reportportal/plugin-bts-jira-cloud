@@ -21,7 +21,7 @@ import static com.epam.reportportal.extension.jira.command.utils.CloudJiraProper
 import static com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties.URL;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import com.epam.reportportal.infrastructure.model.externalsystem.PostFormField;
+import com.epam.reportportal.base.infrastructure.model.externalsystem.PostFormField;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
