@@ -2,9 +2,10 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.7'
     id 'java'
     id 'jacoco'
-    id "com.github.node-gradle.node" version "2.2.1"
+    id "com.github.node-gradle.node" version "7.1.0"
     id "org.openapi.generator" version "7.16.0"
-    id "org.springframework.boot" version "3.4.2" apply false
+    id "org.springframework.boot" version "${springBootVersion}" apply false
+    id 'com.gradleup.shadow' version '9.3.1'
 }
 
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
@@ -19,17 +20,13 @@ apply from: scriptsUrl + '/release-fat.gradle'
 apply from: scriptsUrl + '/signing.gradle'
 
 repositories {
-    mavenCentral { url "https://repo1.maven.org/maven2" }
-    maven { url "https://packages.atlassian.com/maven/repository/public" }
-
-    if (!releaseMode) {
-        maven { url 'https://jitpack.io' }
-    }
+    mavenCentral { url = "https://repo1.maven.org/maven2" }
+    maven { url = 'https://jitpack.io' }
 }
 
 dependencyManagement {
     imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.14.3' : 'com.epam.reportportal:commons-bom:5.14.3')
+        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.15.1' : 'com.epam.reportportal:commons-bom:5.15.1')
     }
 }
 ext['spring-boot.version'] = "${springBootVersion}"
@@ -37,15 +34,10 @@ ext['spring-boot.version'] = "${springBootVersion}"
 dependencies {
     // ALL new dependencies should be included in shadowJar plugin!
     // transitive dependencies may be required as well. could be checked in runtime only!
-    if (releaseMode) {
-        implementation 'com.epam.reportportal:commons-dao'
-        implementation 'com.epam.reportportal:plugin-api'
-        annotationProcessor 'com.epam.reportportal:plugin-api'
-    } else {
-        implementation 'com.github.reportportal:commons-dao:6298e53'
-        implementation 'com.github.reportportal:plugin-api:8cd6958'
-        annotationProcessor 'com.github.reportportal:plugin-api:8cd6958'
-    }
+    implementation 'com.github.reportportal:commons-dao:5.15.1'
+    implementation 'com.github.reportportal:plugin-api:5.15.0'
+    annotationProcessor 'com.github.reportportal:plugin-api:5.15.0'
+
 
     implementation("org.apache.httpcomponents.client5:httpclient5:5.4.2") // supports gzip encoding
     implementation "org.hibernate.validator:hibernate-validator:8.0.2.Final"
@@ -59,15 +51,16 @@ dependencies {
     testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
     testImplementation('org.junit.jupiter:junit-jupiter:5.11.4')
-    testImplementation "org.mockito:mockito-junit-jupiter:5.14.2"
+    testImplementation "org.mockito:mockito-junit-jupiter:5.21.0"
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
 }
 
 sourceSets {
     main {
         java {
-            srcDirs "$buildDir/generated/src/main/java"
-            exclude("$buildDir/generated/src/main/java/com/epam/reportportal/api/jira/MyselfApi.java")
+            srcDirs layout.buildDirectory.dir("generated/src/main/java").get().asFile.path
+            exclude("${layout.buildDirectory.dir("generated/src/main/java").get().asFile.path}/com/epam/reportportal/api/jira/MyselfApi.java")
         }
     }
 }
@@ -76,7 +69,7 @@ sourceSets {
 tasks.register('generateJiraApi', GenerateTask) {
     generatorName.set("java")
     inputSpec.set("$rootDir/src/main/resources/openapi/swagger-v3.v3.json")
-    outputDir.set("$buildDir/generated")
+    outputDir.set(layout.buildDirectory.dir("generated").get().asFile.path)
     configFile.set("$rootDir/src/main/resources/openapi/config.json")
     ignoreFileOverride = "${projectDir.path}/.openapi-generator-ignore"
     skipOverwrite.set(true)
@@ -93,9 +86,7 @@ test {
 
 build.dependsOn jacocoTestReport
 
-artifacts {
-    archives shadowJar
-}
+assemble.dependsOn shadowJar
 
 sourceSets {
     main {
@@ -135,7 +126,7 @@ shadowJar {
         into("/resources")
     }
     configurations = [project.configurations.compileClasspath]
-    zip64 true
+    zip64 = true
     dependencies {
         include(dependency("jakarta.ws.rs:jakarta.ws.rs-api:.*"))
         include(dependency("org.apache.tomcat:tomcat-annotations-api:.*"))
