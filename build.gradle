@@ -5,7 +5,7 @@ plugins {
     id "com.github.node-gradle.node" version "7.1.0"
     id "org.openapi.generator" version "7.16.0"
     id "org.springframework.boot" version "${springBootVersion}" apply false
-    id 'com.github.johnrengelman.shadow' version '8.3.6' apply false
+    id 'com.gradleup.shadow' version '9.3.1'
 }
 
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
@@ -13,9 +13,8 @@ import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 apply from: 'project-properties.gradle'
 
 def scriptsUrl = 'https://raw.githubusercontent.com/reportportal/gradle-scripts/' +
-        (releaseMode ? getProperty('scripts.version') : '5.14.0')
+        (releaseMode ? getProperty('scripts.version') : 'develop')
 
-apply plugin: 'com.github.johnrengelman.shadow'
 apply from: 'ui.gradle'
 apply from: scriptsUrl + '/release-fat.gradle'
 apply from: scriptsUrl + '/signing.gradle'
