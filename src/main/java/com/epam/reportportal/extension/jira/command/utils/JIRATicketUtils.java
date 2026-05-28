@@ -148,12 +148,12 @@ public class JIRATicketUtils {
         continue;
       }
       if (one.getId().equalsIgnoreCase(IssueField.AFFECTS_VERSIONS_FIELD.value)) {
-        var versions = one.getValue().stream().map(version -> Map.entry("id", version)).toList();
+        var versions = one.getValue().stream().map(version -> Map.entry("name", version)).toList();
         issueUpdateDetails.putFieldsItem(IssueField.AFFECTS_VERSIONS_FIELD.value, versions);
         continue;
       }
       if (one.getId().equalsIgnoreCase(IssueField.FIX_VERSIONS_FIELD.value)) {
-        var versions = one.getValue().stream().map(version -> Map.entry("id", version)).toList();
+        var versions = one.getValue().stream().map(version -> Map.entry("name", version)).toList();
         issueUpdateDetails.putFieldsItem(IssueField.FIX_VERSIONS_FIELD.value, versions);
         continue;
       }
