@@ -17,7 +17,7 @@
 package com.epam.reportportal.extension.jira.command;
 
 import com.epam.reportportal.extension.CommonPluginCommand;
-import com.epam.reportportal.extension.jira.api.model.SearchResults;
+import com.epam.reportportal.extension.jira.api.model.IssueBean;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
 import com.epam.reportportal.extension.jira.command.utils.JIRATicketUtils;
@@ -29,8 +29,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.integration.
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
-import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -80,17 +80,14 @@ public class GetIssueCommand implements CommonPluginCommand<Ticket> {
 
   private Ticket getTicket(String ticketId, IntegrationParams details) {
     var client = cloudJiraClientProvider.getApiClient(details);
-    SearchResults issues;
+    IssueBean issueBean;
     try {
-      var jql = String.format("project=%s and key=%s", CloudJiraProperties.PROJECT.getParam(details.getParams()).get(),
-          ticketId);
-      issues = client.issueSearchApi().searchForIssuesUsingJql(jql, null, 50, "", null, null, null, null, null);
-
+      issueBean = client.issuesApi().getIssue(ticketId, List.of("summary", "status"), false, null, null, false, false);
     } catch (Exception e) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR);
     }
-    if (CollectionUtils.isNotEmpty(issues.getIssues())) {
-      return JIRATicketUtils.toTicket(issues.getIssues().getFirst(), CloudJiraProperties.URL.getParam(details)
+    if (Objects.nonNull(issueBean)) {
+      return JIRATicketUtils.toTicket(issueBean, CloudJiraProperties.URL.getParam(details)
           .orElseThrow(
               () -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Url is not specified.")));
     } else {

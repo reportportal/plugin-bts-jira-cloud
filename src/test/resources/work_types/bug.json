@@ -1,0 +1,54 @@
+{
+  "includeComments": true,
+  "includeData": true,
+  "includeLogs": true,
+  "logQuantity": 50,
+  "item": 385750,
+  "fields": [
+    {
+      "id": "summary",
+      "required": true,
+      "fieldName": "Summary",
+      "fieldType": "string",
+      "definedValues": [],
+      "value": [
+        "Something went wrong"
+      ]
+    },
+    {
+      "id": "issuetype",
+      "value": [
+        "Bug"
+      ],
+      "required": true,
+      "fieldName": "Issue Type",
+      "fieldType": "issuetype",
+      "definedValues": [],
+      "disabled": true
+    },
+    {
+      "id": "customfield_10047",
+      "required": true,
+      "fieldName": "Affected version from Helen",
+      "fieldType": "array",
+      "definedValues": [],
+      "value": [
+        "34"
+      ]
+    },
+    {
+      "fieldName" : "MB Found In Version",
+      "id" : "customfield_10118",
+      "fieldType" : "array",
+      "required" : true,
+      "definedValues" : [ ],
+      "value": [
+        "EV_v20.2.00"
+      ]
+    }
+  ],
+  "backLinks": {
+    "385750": "http://dev.epmrpp.reportportal.io/ui/#helen/launches/all/114873/385748/385749/385750/log"
+  }
+}
+

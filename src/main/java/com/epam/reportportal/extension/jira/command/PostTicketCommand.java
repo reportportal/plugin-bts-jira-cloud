@@ -54,6 +54,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.integration.
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +66,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.ThreadUtils;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
@@ -175,6 +178,7 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
       // post binary data
       IssueBean issue = client.issuesApi().getIssue(issueKey, null, false, null, null, false, false);
       for (Map.Entry<String, String> binaryDataEntry : binaryData.entrySet()) {
+        ThreadUtils.sleep(Duration.of(1, ChronoUnit.SECONDS)); // 1 sec delay recommended by jira cloud support
         dataStoreService.load(binaryDataEntry.getKey())
             .ifPresent(inputStream -> addAttachment(issueKey, integration, inputStream, binaryDataEntry.getValue()));
       }
@@ -239,7 +243,10 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
         var outwardIssue = new LinkedIssue();
         outwardIssue.setKey(issue.getKey());
 
-        LinkIssueRequestJsonBean linkIssuesInput = new LinkIssueRequestJsonBean(null, inwardIssue, outwardIssue,
+        LinkIssueRequestJsonBean linkIssuesInput = new LinkIssueRequestJsonBean();
+        linkIssuesInput.setInwardIssue(inwardIssue);
+        linkIssuesInput.setOutwardIssue(outwardIssue);
+        linkIssuesInput.setType(
             issueToLink);
         jiraRestClient.issueLinksApi().linkIssues(linkIssuesInput);
       }
