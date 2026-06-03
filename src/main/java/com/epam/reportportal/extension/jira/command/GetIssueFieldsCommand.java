@@ -15,15 +15,26 @@
  */
 package com.epam.reportportal.extension.jira.command;
 
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
 import static com.epam.reportportal.extension.jira.command.utils.IssueField.AFFECTS_VERSIONS_FIELD;
 import static com.epam.reportportal.extension.jira.command.utils.IssueField.ASSIGNEE_FIELD;
 import static com.epam.reportportal.extension.jira.command.utils.IssueField.COMPONENTS_FIELD;
 import static com.epam.reportportal.extension.jira.command.utils.IssueField.FIX_VERSIONS_FIELD;
 import static com.epam.reportportal.extension.jira.command.utils.IssueField.ISSUE_TYPE_FIELD;
 import static com.epam.reportportal.extension.jira.command.utils.IssueField.PRIORITY_FIELD;
-import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
 
-import com.epam.reportportal.extension.ProjectManagerCommand;
+import com.epam.reportportal.api.model.PluginCommandRQ;
+import com.epam.reportportal.base.infrastructure.model.externalsystem.AllowedValue;
+import com.epam.reportportal.base.infrastructure.model.externalsystem.PostFormField;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.extension.command.AbstractExtensionCommand;
 import com.epam.reportportal.extension.jira.api.model.IssueCreateMetadata;
 import com.epam.reportportal.extension.jira.api.model.IssueTypeDetails;
 import com.epam.reportportal.extension.jira.api.model.IssueTypeIssueCreateMetadata;
@@ -34,19 +45,11 @@ import com.epam.reportportal.extension.jira.api.model.Version;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
 import com.epam.reportportal.extension.jira.command.utils.JIRATicketUtils;
-import com.epam.reportportal.base.infrastructure.model.externalsystem.AllowedValue;
-import com.epam.reportportal.base.infrastructure.model.externalsystem.PostFormField;
-import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
-import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
-import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
@@ -56,7 +59,11 @@ import org.slf4j.LoggerFactory;
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormField>> {
+public class GetIssueFieldsCommand extends AbstractExtensionCommand<List<PostFormField>> {
+  // Override AbstractExtensionCommand permission levels
+  private final ProjectRole minProjectRole = ProjectRole.EDITOR;
+  private final OrganizationRole minOrgRole = OrganizationRole.MANAGER;
+  private final UserRole minUserRole = UserRole.ADMINISTRATOR;
 
   public static final String ISSUE_TYPE = "issueType";
   private static final Logger LOGGER = LoggerFactory.getLogger(GetIssueFieldsCommand.class);
@@ -76,7 +83,9 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
   }
 
   @Override
-  protected List<PostFormField> invokeCommand(Integration integration, Map<String, Object> params) {
+  protected List<PostFormField> invokeCommand(Integration integration, PluginCommandRQ pluginCommandRq) {
+    var params = pluginCommandRq.getArguments();
+
     List<PostFormField> result = new ArrayList<>();
 
     final String issueTypeParam = Optional.ofNullable(params.get(ISSUE_TYPE))

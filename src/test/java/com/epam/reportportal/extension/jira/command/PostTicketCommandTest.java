@@ -28,6 +28,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.extension.jira.command.utils.JIRATicketDescriptionService;
 import com.epam.reportportal.extension.jira.utils.SampleData.WorkType;
 import com.epam.reportportal.extension.util.RequestEntityConverter;
@@ -91,7 +92,7 @@ class PostTicketCommandTest extends BaseCommandTest {
     var command = new PostTicketCommand(projectRepository, requestEntityConverter, cloudJiraClientProvider,
         new JIRATicketDescriptionService(logRepository, itemRepository), dataStoreService,
         organizationRepositoryCustom);
-    Ticket ticket = command.invokeCommand(INTEGRATION, params);
+    Ticket ticket = command.invokeCommand(INTEGRATION, new PluginCommandRQ().arguments(params));
 
     assertNotNull(ticket);
     verifyJiraTicket(ticket);

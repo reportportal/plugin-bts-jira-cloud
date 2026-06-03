@@ -18,10 +18,16 @@ package com.epam.reportportal.extension.jira.command;
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
 
-import com.epam.reportportal.extension.CommonPluginCommand;
-import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
+import com.epam.reportportal.api.model.PluginCommandRQ;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.extension.command.AbstractExtensionCommand;
+import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
 import com.google.common.collect.Maps;
 import java.util.Map;
 import org.apache.commons.collections4.MapUtils;
@@ -31,11 +37,17 @@ import org.jasypt.util.text.BasicTextEncryptor;
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-public class RetrieveCreationParamsCommand implements CommonPluginCommand<Map<String, Object>> {
+public class RetrieveCreationParamsCommand extends AbstractExtensionCommand<Map<String, Object>> {
+  private final ProjectRole minProjectRole = ProjectRole.EDITOR;
+  private final OrganizationRole minOrgRole = OrganizationRole.MANAGER;
+  private final UserRole minUserRole = UserRole.ADMINISTRATOR;
 
   private final BasicTextEncryptor textEncryptor;
 
-  public RetrieveCreationParamsCommand(BasicTextEncryptor textEncryptor) {
+  public RetrieveCreationParamsCommand(BasicTextEncryptor textEncryptor,
+      ProjectRepository projectRepository,
+      OrganizationRepositoryCustom organizationRepository) {
+    super(projectRepository, organizationRepository);
     this.textEncryptor = textEncryptor;
   }
 
@@ -46,8 +58,8 @@ public class RetrieveCreationParamsCommand implements CommonPluginCommand<Map<St
 
   @Override
   //@param integration is always null because it can be not saved yet
-  public Map<String, Object> executeCommand(Map<String, Object> integrationParams) {
-
+  public Map<String, Object> executeCommand(PluginCommandRQ pluginCommandRq) {
+    var integrationParams = pluginCommandRq.getArguments();
     expect(integrationParams, MapUtils::isNotEmpty).verify(ErrorType.BAD_REQUEST_ERROR,
         "No integration params provided");
 

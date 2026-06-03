@@ -19,6 +19,7 @@ package com.epam.reportportal.extension.jira.command;
 import static com.epam.reportportal.extension.jira.command.UserSearchCommand.SEARCH_TERM;
 import static com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties.URL;
 
+import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.extension.jira.dto.UserDto;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,7 +39,7 @@ class UserSearchCommandTest extends BaseCommandTest {
     params.put(URL.getName(), URL.getParam(INTEGRATION.getParams()).get());
 
     var command = new UserSearchCommand(projectRepository, cloudJiraClientProvider, organizationRepositoryCustom);
-    var users = command.invokeCommand(INTEGRATION, params);
+    var users = command.invokeCommand(INTEGRATION, new PluginCommandRQ().arguments(params));
     log.info("Found users: {}", users.stream().map(UserDto::name).toList());
     Assertions.assertFalse(users.isEmpty());
   }

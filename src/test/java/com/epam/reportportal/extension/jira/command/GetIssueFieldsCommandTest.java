@@ -21,8 +21,9 @@ import static com.epam.reportportal.extension.jira.command.utils.CloudJiraProper
 import static com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties.URL;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import com.epam.reportportal.extension.jira.utils.SampleData.WorkType;
+import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.infrastructure.model.externalsystem.PostFormField;
+import com.epam.reportportal.extension.jira.utils.SampleData.WorkType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
@@ -48,7 +49,7 @@ class GetIssueFieldsCommandTest extends BaseCommandTest {
     params.put(ISSUE_TYPE, workType.name());
 
     var command = new GetIssueFieldsCommand(projectRepository, organizationRepositoryCustom, cloudJiraClientProvider);
-    List<PostFormField> response = command.invokeCommand(INTEGRATION, params);
+    List<PostFormField> response = command.invokeCommand(INTEGRATION, new PluginCommandRQ().arguments(params));
 
     log.info(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(response));
     assertFalse(response.isEmpty());

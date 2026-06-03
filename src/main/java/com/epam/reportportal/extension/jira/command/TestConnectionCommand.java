@@ -18,28 +18,37 @@ package com.epam.reportportal.extension.jira.command;
 
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.extension.PluginCommand;
+import com.epam.reportportal.api.model.PluginCommandRQ;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.extension.command.AbstractExtensionCommand;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
 import com.epam.reportportal.extension.jira.utils.IntegrationValidator;
-import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
-import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams;
-import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-public class TestConnectionCommand implements PluginCommand<Boolean> {
+@Slf4j
+public class TestConnectionCommand extends AbstractExtensionCommand<Boolean> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(TestConnectionCommand.class);
+  private final ProjectRole minProjectRole = ProjectRole.EDITOR;
+  private final OrganizationRole minOrgRole = OrganizationRole.MANAGER;
+  private final UserRole minUserRole = UserRole.ADMINISTRATOR;
 
   private final CloudJiraClientProvider cloudJiraClientProvider;
 
-  public TestConnectionCommand(CloudJiraClientProvider cloudJiraClientProvider) {
+  public TestConnectionCommand(CloudJiraClientProvider cloudJiraClientProvider, ProjectRepository projectRepository,
+      OrganizationRepositoryCustom organizationRepository) {
+    super(projectRepository, organizationRepository);
     this.cloudJiraClientProvider = cloudJiraClientProvider;
   }
 
@@ -49,7 +58,8 @@ public class TestConnectionCommand implements PluginCommand<Boolean> {
   }
 
   @Override
-  public Boolean executeCommand(Integration integration, Map<String, Object> params) {
+  public Boolean invokeCommand(Integration integration, PluginCommandRQ pluginCommandRq) {
+    var params = pluginCommandRq.getArguments();
     IntegrationParams integrationParams = ofNullable(integration.getParams())
         .orElseThrow(() -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION,
             "Integration params are not specified."));
@@ -62,7 +72,7 @@ public class TestConnectionCommand implements PluginCommand<Boolean> {
       var jn = cloudJiraClientProvider.getApiClient(integrationParams).projectsApi().getProject(projectKey, null, null);
       return jn != null;
     } catch (Exception e) {
-      LOGGER.error("Unable to connect to Cloud Jira: ", e);
+      log.error("Unable to connect to Cloud Jira: ", e);
       throw new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Unable to connect to Cloud Jira");
     }
   }

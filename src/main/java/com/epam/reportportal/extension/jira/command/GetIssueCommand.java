@@ -16,26 +16,37 @@
 
 package com.epam.reportportal.extension.jira.command;
 
-import com.epam.reportportal.extension.CommonPluginCommand;
+import com.epam.reportportal.api.model.PluginCommandRQ;
+import com.epam.reportportal.base.infrastructure.model.externalsystem.Ticket;
+import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.TicketRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.extension.command.AbstractExtensionCommand;
 import com.epam.reportportal.extension.jira.api.model.IssueBean;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
 import com.epam.reportportal.extension.jira.command.utils.JIRATicketUtils;
-import com.epam.reportportal.base.infrastructure.model.externalsystem.Ticket;
-import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.TicketRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
-import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams;
-import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
-import java.util.Map;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-public class GetIssueCommand implements CommonPluginCommand<Ticket> {
+public class GetIssueCommand extends AbstractExtensionCommand<Ticket> {
+
+  // Override AbstractExtensionCommand permission levels
+  private final ProjectRole minProjectRole = ProjectRole.EDITOR;
+  private final OrganizationRole minOrgRole = OrganizationRole.MANAGER;
+  private final UserRole minUserRole = UserRole.ADMINISTRATOR;
 
   private final String TICKET_ID = "ticketId";
   private final String PROJECT_ID = "projectId";
@@ -46,14 +57,19 @@ public class GetIssueCommand implements CommonPluginCommand<Ticket> {
 
   public GetIssueCommand(TicketRepository ticketRepository,
       IntegrationRepository integrationRepository,
-      CloudJiraClientProvider cloudJiraClientProvider) {
+      CloudJiraClientProvider cloudJiraClientProvider,
+      ProjectRepository projectRepository,
+      OrganizationRepositoryCustom organizationRepository) {
+    super(projectRepository, organizationRepository);
     this.ticketRepository = ticketRepository;
     this.integrationRepository = integrationRepository;
     this.cloudJiraClientProvider = cloudJiraClientProvider;
   }
 
   @Override
-  public Ticket executeCommand(Map<String, Object> params) {
+  public Ticket executeCommand(PluginCommandRQ pluginCommandRq) {
+    var params = pluginCommandRq.getArguments();
+
     var ticketId = Optional.ofNullable(params.get(TICKET_ID))
         .map(String::valueOf)
         .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, TICKET_ID + "  must be provided"));

@@ -18,6 +18,8 @@ package com.epam.reportportal.extension.jira.command;
 
 import static com.epam.reportportal.extension.jira.utils.TestProperties.getTestProperties;
 
+import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPortalUser;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
@@ -29,16 +31,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 // set values in 'integration.properties' to enable the tests
 @Slf4j
@@ -69,6 +77,26 @@ public abstract class BaseCommandTest {
   }
 
   CloudJiraClientProvider cloudJiraClientProvider = new CloudJiraClientProvider(basicTextEncryptor);
+
+  @BeforeEach
+  void setUpSecurityContext() {
+    ReportPortalUser user = ReportPortalUser.userBuilder()
+        .withUserName("test")
+        .withPassword("")
+        .withUserRole(UserRole.ADMINISTRATOR)
+        .withAuthorities(Collections.emptyList())
+        .build();
+    SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+    securityContext.setAuthentication(
+        new UsernamePasswordAuthenticationToken(user, null, Collections.emptyList())
+    );
+    SecurityContextHolder.setContext(securityContext);
+  }
+
+  @AfterEach
+  void clearSecurityContext() {
+    SecurityContextHolder.clearContext();
+  }
 
   @BeforeAll
   protected static void before() {
