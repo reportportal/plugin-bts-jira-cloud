@@ -38,9 +38,6 @@ import org.jasypt.util.text.BasicTextEncryptor;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class RetrieveCreationParamsCommand extends AbstractExtensionCommand<Map<String, Object>> {
-  private final ProjectRole minProjectRole = ProjectRole.EDITOR;
-  private final OrganizationRole minOrgRole = OrganizationRole.MANAGER;
-  private final UserRole minUserRole = UserRole.ADMINISTRATOR;
 
   private final BasicTextEncryptor textEncryptor;
 
@@ -49,6 +46,11 @@ public class RetrieveCreationParamsCommand extends AbstractExtensionCommand<Map<
       OrganizationRepositoryCustom organizationRepository) {
     super(projectRepository, organizationRepository);
     this.textEncryptor = textEncryptor;
+
+    // Set required permission levels
+    this.minProjectRole = ProjectRole.EDITOR;
+    this.minOrgRole = OrganizationRole.MANAGER;
+    this.minUserRole = UserRole.ADMINISTRATOR;
   }
 
   @Override

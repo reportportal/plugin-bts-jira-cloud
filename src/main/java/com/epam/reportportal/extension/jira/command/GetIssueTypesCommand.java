@@ -41,12 +41,6 @@ import org.springframework.web.client.RestClientException;
 @Slf4j
 public class GetIssueTypesCommand extends AbstractExtensionCommand<List<String>> {
 
-  // Override AbstractExtensionCommand permission levels
-  private final ProjectRole minProjectRole = ProjectRole.EDITOR;
-  private final OrganizationRole minOrgRole = OrganizationRole.MANAGER;
-  private final UserRole minUserRole = UserRole.ADMINISTRATOR;
-  //
-
   private final CloudJiraClientProvider cloudJiraClientProvider;
 
   public GetIssueTypesCommand(ProjectRepository projectRepository,
@@ -54,6 +48,11 @@ public class GetIssueTypesCommand extends AbstractExtensionCommand<List<String>>
       OrganizationRepositoryCustom organizationRepository) {
     super(projectRepository, organizationRepository);
     this.cloudJiraClientProvider = cloudJiraClientProvider;
+
+    // Set required permission levels
+    this.minProjectRole = ProjectRole.EDITOR;
+    this.minOrgRole = OrganizationRole.MANAGER;
+    this.minUserRole = UserRole.ADMINISTRATOR;
   }
 
   @Override

@@ -60,10 +60,6 @@ import org.slf4j.LoggerFactory;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class GetIssueFieldsCommand extends AbstractExtensionCommand<List<PostFormField>> {
-  // Override AbstractExtensionCommand permission levels
-  private final ProjectRole minProjectRole = ProjectRole.EDITOR;
-  private final OrganizationRole minOrgRole = OrganizationRole.MANAGER;
-  private final UserRole minUserRole = UserRole.ADMINISTRATOR;
 
   public static final String ISSUE_TYPE = "issueType";
   private static final Logger LOGGER = LoggerFactory.getLogger(GetIssueFieldsCommand.class);
@@ -75,6 +71,11 @@ public class GetIssueFieldsCommand extends AbstractExtensionCommand<List<PostFor
       CloudJiraClientProvider cloudJiraClientProvider) {
     super(projectRepository, organizationRepository);
     this.cloudJiraClientProvider = cloudJiraClientProvider;
+
+    // Set required permission levels
+    this.minProjectRole = ProjectRole.EDITOR;
+    this.minOrgRole = OrganizationRole.MANAGER;
+    this.minUserRole = UserRole.ADMINISTRATOR;
   }
 
   @Override

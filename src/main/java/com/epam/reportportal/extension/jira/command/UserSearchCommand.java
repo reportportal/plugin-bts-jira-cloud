@@ -36,10 +36,6 @@ import java.util.stream.Collectors;
  */
 public class UserSearchCommand extends AbstractExtensionCommand<List<UserDto>> {
 
-  private final ProjectRole minProjectRole = ProjectRole.EDITOR;
-  private final OrganizationRole minOrgRole = OrganizationRole.MANAGER;
-  private final UserRole minUserRole = UserRole.ADMINISTRATOR;
-
   public static final String SEARCH_TERM = "term";
   private final CloudJiraClientProvider cloudJiraClientProvider;
 
@@ -47,6 +43,11 @@ public class UserSearchCommand extends AbstractExtensionCommand<List<UserDto>> {
       OrganizationRepositoryCustom organizationRepository) {
     super(projectRepository, organizationRepository);
     this.cloudJiraClientProvider = cloudJiraClientProvider;
+
+    // Set required permission levels
+    this.minProjectRole = ProjectRole.EDITOR;
+    this.minOrgRole = OrganizationRole.MANAGER;
+    this.minUserRole = UserRole.ADMINISTRATOR;
   }
 
   @Override

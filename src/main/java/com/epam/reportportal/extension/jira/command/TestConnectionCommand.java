@@ -40,16 +40,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TestConnectionCommand extends AbstractExtensionCommand<Boolean> {
 
-  private final ProjectRole minProjectRole = ProjectRole.EDITOR;
-  private final OrganizationRole minOrgRole = OrganizationRole.MANAGER;
-  private final UserRole minUserRole = UserRole.ADMINISTRATOR;
-
   private final CloudJiraClientProvider cloudJiraClientProvider;
 
   public TestConnectionCommand(CloudJiraClientProvider cloudJiraClientProvider, ProjectRepository projectRepository,
       OrganizationRepositoryCustom organizationRepository) {
     super(projectRepository, organizationRepository);
     this.cloudJiraClientProvider = cloudJiraClientProvider;
+
+    // Set required permission levels
+    this.minProjectRole = ProjectRole.EDITOR;
+    this.minOrgRole = OrganizationRole.MANAGER;
+    this.minUserRole = UserRole.ADMINISTRATOR;
   }
 
   @Override

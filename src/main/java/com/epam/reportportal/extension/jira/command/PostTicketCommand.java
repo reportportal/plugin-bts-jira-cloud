@@ -86,12 +86,6 @@ import org.springframework.web.client.RestClientException;
 @Slf4j
 public class PostTicketCommand extends AbstractExtensionCommand<Ticket> {
 
-  // Override AbstractExtensionCommand permission levels
-  private final ProjectRole minProjectRole = ProjectRole.EDITOR;
-  private final OrganizationRole minOrgRole = OrganizationRole.MANAGER;
-  private final UserRole minUserRole = UserRole.ADMINISTRATOR;
-
-
   private final RequestEntityConverter requestEntityConverter;
 
   private final CloudJiraClientProvider cloudJiraClientProvider;
@@ -112,6 +106,11 @@ public class PostTicketCommand extends AbstractExtensionCommand<Ticket> {
     this.cloudJiraClientProvider = cloudJiraClientProvider;
     this.descriptionService = descriptionService;
     this.dataStoreService = dataStoreService;
+
+    // Set required permission levels
+    this.minProjectRole = ProjectRole.EDITOR;
+    this.minOrgRole = OrganizationRole.MANAGER;
+    this.minUserRole = UserRole.ADMINISTRATOR;
   }
 
   @Override

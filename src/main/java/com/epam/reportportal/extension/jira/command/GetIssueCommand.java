@@ -43,11 +43,6 @@ import java.util.Optional;
  */
 public class GetIssueCommand extends AbstractExtensionCommand<Ticket> {
 
-  // Override AbstractExtensionCommand permission levels
-  private final ProjectRole minProjectRole = ProjectRole.EDITOR;
-  private final OrganizationRole minOrgRole = OrganizationRole.MANAGER;
-  private final UserRole minUserRole = UserRole.ADMINISTRATOR;
-
   private final String TICKET_ID = "ticketId";
   private final String PROJECT_ID = "projectId";
 
@@ -64,6 +59,11 @@ public class GetIssueCommand extends AbstractExtensionCommand<Ticket> {
     this.ticketRepository = ticketRepository;
     this.integrationRepository = integrationRepository;
     this.cloudJiraClientProvider = cloudJiraClientProvider;
+
+    // Set required permission levels
+    this.minProjectRole = ProjectRole.EDITOR;
+    this.minOrgRole = OrganizationRole.MANAGER;
+    this.minUserRole = UserRole.ADMINISTRATOR;
   }
 
   @Override
