@@ -25,19 +25,11 @@ import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalExc
 import com.google.common.collect.Maps;
 import java.util.Map;
 import org.apache.commons.collections4.MapUtils;
-import org.jasypt.util.text.BasicTextEncryptor;
-
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class RetrieveCreationParamsCommand implements CommonPluginCommand<Map<String, Object>> {
-
-  private final BasicTextEncryptor textEncryptor;
-
-  public RetrieveCreationParamsCommand(BasicTextEncryptor textEncryptor) {
-    this.textEncryptor = textEncryptor;
-  }
 
   @Override
   public String getName() {
@@ -70,9 +62,9 @@ public class RetrieveCreationParamsCommand implements CommonPluginCommand<Map<St
     );
 
     resultParams.put(CloudJiraProperties.API_TOKEN.getName(),
-        textEncryptor.encrypt(CloudJiraProperties.API_TOKEN.getParam(integrationParams)
+        CloudJiraProperties.API_TOKEN.getParam(integrationParams)
             .orElseThrow(
-                () -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "API token value is not specified.")))
+                () -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "API token value is not specified."))
     );
 
     return resultParams;

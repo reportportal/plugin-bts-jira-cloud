@@ -211,8 +211,8 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
 
   private Map<String, CommonPluginCommand<?>> getCommonCommands() {
     List<CommonPluginCommand<?>> commands = new ArrayList<>();
-    commands.add(new RetrieveCreationParamsCommand(textEncryptor));
-    commands.add(new RetrieveUpdateParamsCommand(textEncryptor));
+    commands.add(new RetrieveCreationParamsCommand());
+    commands.add(new RetrieveUpdateParamsCommand());
     commands.add(new GetIssueCommand(ticketRepository, integrationRepository,
         cloudJiraClientProviderSupplier.get()
     ));
