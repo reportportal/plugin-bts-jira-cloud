@@ -21,18 +21,11 @@ import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
 import com.google.common.collect.Maps;
 import java.util.Map;
 import java.util.Optional;
-import org.jasypt.util.text.BasicTextEncryptor;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class RetrieveUpdateParamsCommand implements CommonPluginCommand<Map<String, Object>> {
-
-  private final BasicTextEncryptor textEncryptor;
-
-  public RetrieveUpdateParamsCommand(BasicTextEncryptor textEncryptor) {
-    this.textEncryptor = textEncryptor;
-  }
 
   @Override
   public String getName() {
@@ -50,7 +43,7 @@ public class RetrieveUpdateParamsCommand implements CommonPluginCommand<Map<Stri
     CloudJiraProperties.EMAIL.getParam(integrationParams)
         .ifPresent(url -> resultParams.put(CloudJiraProperties.EMAIL.getName(), url));
     CloudJiraProperties.API_TOKEN.getParam(integrationParams)
-        .ifPresent(token -> resultParams.put(CloudJiraProperties.API_TOKEN.getName(), textEncryptor.encrypt(token)));
+        .ifPresent(token -> resultParams.put(CloudJiraProperties.API_TOKEN.getName(), token));
     Optional.ofNullable(integrationParams.get("defectFormFields"))
         .ifPresent(defectFormFields -> resultParams.put("defectFormFields", defectFormFields));
     return resultParams;
