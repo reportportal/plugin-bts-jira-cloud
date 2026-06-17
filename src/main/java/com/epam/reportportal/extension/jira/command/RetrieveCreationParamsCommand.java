@@ -34,23 +34,18 @@ import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
 import com.google.common.collect.Maps;
 import java.util.Map;
 import org.apache.commons.collections4.MapUtils;
-import org.jasypt.util.text.BasicTextEncryptor;
-
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class RetrieveCreationParamsCommand extends AbstractExtensionCommand<Map<String, Object>> {
 
-  private final BasicTextEncryptor textEncryptor;
-
-  public RetrieveCreationParamsCommand(BasicTextEncryptor textEncryptor,
+  public RetrieveCreationParamsCommand(
       ProjectRepository projectRepository,
       OrganizationUserRepository organizationUserRepository,
       OrganizationRepository organizationRepository,
       ProjectUserRepository projectUserRepository) {
     super(projectRepository, organizationUserRepository, organizationRepository, projectUserRepository);
-    this.textEncryptor = textEncryptor;
 
     // Set required permission levels
     this.minProjectRole = ProjectRole.EDITOR;
@@ -89,9 +84,9 @@ public class RetrieveCreationParamsCommand extends AbstractExtensionCommand<Map<
     );
 
     resultParams.put(CloudJiraProperties.API_TOKEN.getName(),
-        textEncryptor.encrypt(CloudJiraProperties.API_TOKEN.getParam(integrationParams)
+        CloudJiraProperties.API_TOKEN.getParam(integrationParams)
             .orElseThrow(
-                () -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "API token value is not specified.")))
+                () -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "API token value is not specified."))
     );
 
     return resultParams;

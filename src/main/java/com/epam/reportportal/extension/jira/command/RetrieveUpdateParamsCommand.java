@@ -29,22 +29,19 @@ import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
 import com.google.common.collect.Maps;
 import java.util.Map;
 import java.util.Optional;
-import org.jasypt.util.text.BasicTextEncryptor;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class RetrieveUpdateParamsCommand extends AbstractExtensionCommand<Map<String, Object>> {
 
-  private final BasicTextEncryptor textEncryptor;
 
-  public RetrieveUpdateParamsCommand(BasicTextEncryptor textEncryptor,
+  public RetrieveUpdateParamsCommand(
       ProjectRepository projectRepository,
       OrganizationUserRepository organizationUserRepository,
       OrganizationRepository organizationRepository,
       ProjectUserRepository projectUserRepository) {
     super(projectRepository, organizationUserRepository, organizationRepository, projectUserRepository);
-    this.textEncryptor = textEncryptor;
 
     // Set required permission levels
     this.minProjectRole = ProjectRole.EDITOR;
@@ -70,7 +67,7 @@ public class RetrieveUpdateParamsCommand extends AbstractExtensionCommand<Map<St
     CloudJiraProperties.EMAIL.getParam(integrationParams)
         .ifPresent(url -> resultParams.put(CloudJiraProperties.EMAIL.getName(), url));
     CloudJiraProperties.API_TOKEN.getParam(integrationParams)
-        .ifPresent(token -> resultParams.put(CloudJiraProperties.API_TOKEN.getName(), textEncryptor.encrypt(token)));
+        .ifPresent(token -> resultParams.put(CloudJiraProperties.API_TOKEN.getName(), token));
     Optional.ofNullable(integrationParams.get("defectFormFields"))
         .ifPresent(defectFormFields -> resultParams.put("defectFormFields", defectFormFields));
     return resultParams;
