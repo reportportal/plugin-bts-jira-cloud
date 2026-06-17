@@ -22,7 +22,9 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.ReportPorta
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -54,7 +56,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public abstract class BaseCommandTest {
 
   @Mock
-  OrganizationRepositoryCustom organizationRepositoryCustom;
+  OrganizationUserRepository organizationUserRepository;
+  @Mock
+  OrganizationRepository organizationRepository;
+  @Mock
+  ProjectUserRepository projectUserRepository;
   @Mock
   ProjectRepository projectRepository;
 

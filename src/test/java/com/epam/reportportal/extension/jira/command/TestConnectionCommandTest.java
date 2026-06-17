@@ -28,7 +28,8 @@ class TestConnectionCommandTest extends BaseCommandTest {
   @Test
   @DisabledIf("disabled")
   void testConnection() {
-    var command = new TestConnectionCommand(cloudJiraClientProvider, projectRepository, organizationRepositoryCustom);
+    var command = new TestConnectionCommand(cloudJiraClientProvider, projectRepository, organizationUserRepository,
+        organizationRepository, projectUserRepository);
     Boolean response = command.executeCommand(INTEGRATION, new PluginCommandRQ().arguments(new HashMap<>()));
     assertTrue(response);
   }

@@ -33,7 +33,9 @@ import com.epam.reportportal.base.infrastructure.model.externalsystem.PostTicket
 import com.epam.reportportal.base.infrastructure.model.externalsystem.Ticket;
 import com.epam.reportportal.base.infrastructure.persistence.binary.DataStoreService;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
@@ -100,8 +102,10 @@ public class PostTicketCommand extends AbstractExtensionCommand<Ticket> {
       RequestEntityConverter requestEntityConverter,
       CloudJiraClientProvider cloudJiraClientProvider,
       JIRATicketDescriptionService descriptionService, DataStoreService dataStoreService,
-      OrganizationRepositoryCustom organizationRepository) {
-    super(projectRepository, organizationRepository);
+      OrganizationUserRepository organizationUserRepository,
+      OrganizationRepository organizationRepository,
+      ProjectUserRepository projectUserRepository) {
+    super(projectRepository, organizationUserRepository, organizationRepository, projectUserRepository);
     this.requestEntityConverter = requestEntityConverter;
     this.cloudJiraClientProvider = cloudJiraClientProvider;
     this.descriptionService = descriptionService;

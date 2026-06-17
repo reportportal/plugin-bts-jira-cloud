@@ -91,7 +91,7 @@ class PostTicketCommandTest extends BaseCommandTest {
 
     var command = new PostTicketCommand(projectRepository, requestEntityConverter, cloudJiraClientProvider,
         new JIRATicketDescriptionService(logRepository, itemRepository), dataStoreService,
-        organizationRepositoryCustom);
+        organizationUserRepository, organizationRepository, projectUserRepository);
     Ticket ticket = command.invokeCommand(INTEGRATION, new PluginCommandRQ().arguments(params));
 
     assertNotNull(ticket);

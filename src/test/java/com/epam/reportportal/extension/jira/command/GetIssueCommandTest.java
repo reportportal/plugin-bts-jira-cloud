@@ -57,7 +57,7 @@ class GetIssueCommandTest extends BaseCommandTest {
         .thenReturn(Optional.of(INTEGRATION));
 
     var command = new GetIssueCommand(ticketRepository, integrationRepository, cloudJiraClientProvider,
-        projectRepository, organizationRepositoryCustom);
+        projectRepository, organizationUserRepository, organizationRepository, projectUserRepository);
     Object response = command.executeCommand(new PluginCommandRQ().arguments(params));
 
     assertNotNull(response);

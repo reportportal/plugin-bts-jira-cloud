@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.reportportal.extension.jira.command;
 
 import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
@@ -27,7 +28,9 @@ import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.infrastructure.model.externalsystem.AllowedValue;
 import com.epam.reportportal.base.infrastructure.model.externalsystem.PostFormField;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
@@ -67,9 +70,11 @@ public class GetIssueFieldsCommand extends AbstractExtensionCommand<List<PostFor
   private final CloudJiraClientProvider cloudJiraClientProvider;
 
   public GetIssueFieldsCommand(ProjectRepository projectRepository,
-      OrganizationRepositoryCustom organizationRepository,
+      OrganizationUserRepository organizationUserRepository,
+      OrganizationRepository organizationRepository,
+      ProjectUserRepository projectUserRepository,
       CloudJiraClientProvider cloudJiraClientProvider) {
-    super(projectRepository, organizationRepository);
+    super(projectRepository, organizationUserRepository, organizationRepository, projectUserRepository);
     this.cloudJiraClientProvider = cloudJiraClientProvider;
 
     // Set required permission levels

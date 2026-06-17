@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.reportportal.extension.jira.command;
 
 import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
@@ -20,7 +21,9 @@ import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorTyp
 
 import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
@@ -43,8 +46,10 @@ public class RetrieveCreationParamsCommand extends AbstractExtensionCommand<Map<
 
   public RetrieveCreationParamsCommand(BasicTextEncryptor textEncryptor,
       ProjectRepository projectRepository,
-      OrganizationRepositoryCustom organizationRepository) {
-    super(projectRepository, organizationRepository);
+      OrganizationUserRepository organizationUserRepository,
+      OrganizationRepository organizationRepository,
+      ProjectUserRepository projectUserRepository) {
+    super(projectRepository, organizationUserRepository, organizationRepository, projectUserRepository);
     this.textEncryptor = textEncryptor;
 
     // Set required permission levels
