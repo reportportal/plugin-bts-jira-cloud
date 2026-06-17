@@ -148,7 +148,27 @@ public class JIRATicketUtils {
         continue;
       }
       if (one.getId().equalsIgnoreCase(IssueField.AFFECTS_VERSIONS_FIELD.value)) {
-        var versions = one.getValue().stream().map(version -> Map.entry("id", version)).toList();
+        var cimFieldInfo = cimIssueType.getFirst().getFields().get(one.getId());
+
+        // Build map: version name -> id
+        Map<String, String> versionNameToId = cimFieldInfo.getAllowedValues().stream()
+            .collect(Collectors.toMap(
+                v -> ((Map<String,Object>)v).get("name").toString(),
+                v -> ((Map<String,Object>)v).get("id").toString()
+            ));
+
+        // Map input names to IDs
+        var versions = one.getValue().stream()
+            .map(versionName -> {
+                String versionId = versionNameToId.get(versionName);
+                if (versionId == null) {
+                    throw new IllegalArgumentException(
+                        "Version not found in allowedValues: " + versionName
+                    );
+                }
+                return Map.of("id", versionId);
+            })
+            .toList();
         issueUpdateDetails.putFieldsItem(IssueField.AFFECTS_VERSIONS_FIELD.value, versions);
         continue;
       }
