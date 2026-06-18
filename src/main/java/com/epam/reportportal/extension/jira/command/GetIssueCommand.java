@@ -44,7 +44,6 @@ public class GetIssueCommand implements CommonPluginCommand<Ticket> {
       "reporter",
       "assignee",
       "created",
-      "fixVersions",
       "customfield_22858"
   );
 

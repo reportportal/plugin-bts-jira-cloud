@@ -84,7 +84,6 @@ public class JIRATicketUtils {
     ticket.setReporter(extractUserDisplayName(fields.get("reporter")));
     ticket.setAssignee(extractUserDisplayName(fields.get("assignee")));
     ticket.setCreated(extractTextValue(fields.get("created")));
-    ticket.setFixVersions(extractFixVersions(fields.get("fixVersions")));
     ticket.setSeverity(extractCustomFieldValue(fields.get(SEVERITY_FIELD_ID)));
     return ticket;
   }
@@ -111,19 +110,6 @@ public class JIRATicketUtils {
       return userNode.get("displayName").asText();
     }
     return extractTextValue(userNode);
-  }
-
-  private static String extractFixVersions(JsonNode fixVersionsNode) {
-    if (fixVersionsNode == null || !fixVersionsNode.isArray() || fixVersionsNode.isEmpty()) {
-      return null;
-    }
-    List<String> names = new ArrayList<>();
-    fixVersionsNode.forEach(version -> {
-      if (version.hasNonNull("name")) {
-        names.add(version.get("name").asText());
-      }
-    });
-    return names.isEmpty() ? null : String.join(", ", names);
   }
 
   private static String extractCustomFieldValue(JsonNode fieldNode) {
