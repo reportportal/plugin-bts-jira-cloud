@@ -19,7 +19,7 @@ package com.epam.reportportal.extension.jira.command;
 import static com.epam.reportportal.extension.jira.command.GetIssueFieldsCommand.ISSUE_TYPE;
 import static com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties.PROJECT;
 import static com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties.URL;
-import static com.epam.reportportal.extension.jira.utils.SampleData.BUG;
+import static com.epam.reportportal.extension.jira.utils.SampleData.getSample;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -28,7 +28,9 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.extension.jira.command.utils.JIRATicketDescriptionService;
+import com.epam.reportportal.extension.jira.utils.SampleData.WorkType;
 import com.epam.reportportal.extension.util.RequestEntityConverter;
 import com.epam.reportportal.base.infrastructure.model.externalsystem.PostTicketRQ;
 import com.epam.reportportal.base.infrastructure.model.externalsystem.Ticket;
@@ -43,7 +45,7 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.RestTemplate;
@@ -62,23 +64,21 @@ class PostTicketCommandTest extends BaseCommandTest {
   LogRepository logRepository;
 
   @ParameterizedTest
-  @CsvSource(value = {
-      "Story"
-  })
-  void postTicketCommand(String issueType) throws JsonProcessingException {
+  @EnumSource(WorkType.class)
+  void postTicketCommand(WorkType issueType) throws JsonProcessingException {
     if (disabled()) {
       return;
     }
     TestItem testItem = new TestItem();
     when(itemRepository.findById(anyLong())).thenReturn(Optional.of(testItem));
 
-    PostTicketRQ entity = objectMapper.readValue(BUG, PostTicketRQ.class);
+    PostTicketRQ postTicketRQ = objectMapper.readValue(getSample(issueType), PostTicketRQ.class);
 
     Map<String, Object> params = new HashMap<>(JIRA_COMMAND_PARAMS);
     params.put(PROJECT.getName(), PROJECT.getParam(INTEGRATION.getParams()));
     params.put(URL.getName(), URL.getParam(INTEGRATION.getParams()));
     params.put(ISSUE_TYPE, issueType);
-    params.put("entity", entity);
+    params.put("entity", postTicketRQ);
 
     lenient().when(dataStoreService.load(anyString()))
         .thenReturn(Optional.of(getClass().getClassLoader().getResourceAsStream("attachment.txt")));
@@ -91,8 +91,8 @@ class PostTicketCommandTest extends BaseCommandTest {
 
     var command = new PostTicketCommand(projectRepository, requestEntityConverter, cloudJiraClientProvider,
         new JIRATicketDescriptionService(logRepository, itemRepository), dataStoreService,
-        organizationRepositoryCustom);
-    Ticket ticket = command.invokeCommand(INTEGRATION, params);
+        organizationUserRepository, organizationRepository, projectUserRepository);
+    Ticket ticket = command.invokeCommand(INTEGRATION, new PluginCommandRQ().arguments(params));
 
     assertNotNull(ticket);
     verifyJiraTicket(ticket);

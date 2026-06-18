@@ -118,7 +118,8 @@ public class JIRATicketUtils {
 
       // Skip issuetype and project fields cause got them in
       // issueInputBuilder already
-      if (one.getId().equalsIgnoreCase(IssueField.ISSUE_TYPE_FIELD.value) || one.getId()
+      if (one.getId().equalsIgnoreCase(IssueField.ISSUE_TYPE_FIELD.value)
+          || one.getId()
           .equalsIgnoreCase(IssueField.PROJECT_FIELD.value)) {
         continue;
       }
@@ -148,12 +149,12 @@ public class JIRATicketUtils {
         continue;
       }
       if (one.getId().equalsIgnoreCase(IssueField.AFFECTS_VERSIONS_FIELD.value)) {
-        var versions = one.getValue().stream().map(version -> Map.entry("id", version)).toList();
+        var versions = one.getValue().stream().map(version -> Map.entry("name", version)).toList();
         issueUpdateDetails.putFieldsItem(IssueField.AFFECTS_VERSIONS_FIELD.value, versions);
         continue;
       }
       if (one.getId().equalsIgnoreCase(IssueField.FIX_VERSIONS_FIELD.value)) {
-        var versions = one.getValue().stream().map(version -> Map.entry("id", version)).toList();
+        var versions = one.getValue().stream().map(version -> Map.entry("name", version)).toList();
         issueUpdateDetails.putFieldsItem(IssueField.FIX_VERSIONS_FIELD.value, versions);
         continue;
       }
@@ -167,16 +168,13 @@ public class JIRATicketUtils {
 
       var cimFieldInfo = cimIssueType.getFirst().getFields().get(one.getId());
       // Arrays and fields with 'allowedValues' handler
-      if (cimFieldInfo.getAllowedValues() != null) {
+      if (CollectionUtils.isNotEmpty(cimFieldInfo.getAllowedValues())) {
         try {
           List<Object> arrayOfValues = new ArrayList<>();
-          for (Object o : new ArrayList<>(cimFieldInfo.getAllowedValues())) {
-            JsonNode jn = new ObjectMapper().valueToTree(o);
-            if (isCustomField(jn) && one.getValue().contains(jn.get("value").asText())) {
-              arrayOfValues.add(Map.entry("id", jn.get("id").asText()));
-            }
+          for (Object allowedValue : new ArrayList<>(cimFieldInfo.getAllowedValues())) {
+            mapAllowedValue(one, cimFieldInfo, allowedValue, arrayOfValues);
           }
-          if (one.getFieldType().equalsIgnoreCase(IssueFieldType.ARRAY.name)) {
+          if (one.getFieldType().equalsIgnoreCase(IssueFieldType.ARRAY.getName())) {
             issueUpdateDetails.putFieldsItem(one.getId(), arrayOfValues);
           } else {
             issueUpdateDetails.putFieldsItem(one.getId(), arrayOfValues.get(0));
@@ -186,12 +184,8 @@ public class JIRATicketUtils {
           issueUpdateDetails.putFieldsItem(one.getId(), "ReportPortal autofield");
         }
       } else {
-        if (one.getFieldType().equalsIgnoreCase(IssueFieldType.ARRAY.name)) {
-          if (isLabelField(one, cimFieldInfo)) {
-            issueUpdateDetails.putFieldsItem(one.getId(), processLabels(one.getValue().get(0)));
-          } else {
-            issueUpdateDetails.putFieldsItem(one.getId(), one.getValue());
-          }
+        if (one.getFieldType().equalsIgnoreCase(IssueFieldType.ARRAY.getName())) {
+          issueUpdateDetails.putFieldsItem(one.getId(), one.getValue());
         } else if (one.getFieldType().equalsIgnoreCase(IssueFieldType.NUMBER.getName())) {
           issueUpdateDetails.putFieldsItem(one.getId(), Long.valueOf(one.getValue().get(0)));
         } else if (one.getFieldType().equalsIgnoreCase(IssueFieldType.USER.getName())) {
@@ -226,10 +220,33 @@ public class JIRATicketUtils {
     return issueUpdateDetails;
   }
 
+  private static void checkAllowedValues(List<Object> allowedValues, List<String> value) {
+    System.out.println("Checking allowed values");
+  }
+
+  private static void mapAllowedValue(PostFormField postFormField, FieldMetadata fieldMetadata, Object allowedValue,
+      List<Object> result) {
+    JsonNode jn = new ObjectMapper().valueToTree(allowedValue);
+    if (isCustomField(jn) && postFormField.getValue().contains(jn.get("value").asText())) {
+      result.add(Map.entry("id", jn.get("id").asText()));
+    } else if (isMultiselectField(postFormField, fieldMetadata)
+        && postFormField.getValue().contains(jn.get("name").asText())) {
+      result.add(Map.entry("name", jn.get("name").asText()));
+    }
+
+  }
+
   private static boolean isLabelField(PostFormField one, FieldMetadata cimFieldInfo) {
     return (cimFieldInfo.getSchema() != null && cimFieldInfo.getSchema().getCustom() != null
         && (cimFieldInfo.getSchema().getCustom().equals("com.atlassian.jira.plugin.system.customfieldtypes:labels")))
         || one.getId().equalsIgnoreCase(IssueField.LABELS_FIELD.getValue());
+  }
+
+  private static boolean isMultiselectField(PostFormField one, FieldMetadata cimFieldInfo) {
+    return (cimFieldInfo.getSchema() != null
+        && cimFieldInfo.getSchema().getCustom() != null
+        && (cimFieldInfo.getSchema().getCustom()
+        .equals("com.atlassian.jira.plugin.system.customfieldtypes:multiversion")));
   }
 
   private static void processArrayValue(IssueUpdateDetails issueUpdateDetails, FieldMetadata cimFieldInfo,

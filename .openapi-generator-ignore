@@ -10,7 +10,6 @@ api/*.yaml
 /**/Project**Api.java
 
 ## Exclude broken model
-/**/ApprovalConfiguration.java
 
 #Force generate
 !/**/ProjectsApi.java
