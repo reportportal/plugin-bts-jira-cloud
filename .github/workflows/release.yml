@@ -11,7 +11,7 @@ on:
 
 env:
   GH_USER_NAME: github.actor
-  SCRIPTS_VERSION: 5.14.0
+  SCRIPTS_VERSION: develop
   BOM_VERSION: 5.14.2
 
 jobs:

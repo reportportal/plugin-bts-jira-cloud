@@ -1,0 +1,596 @@
+{
+  "includeComments": true,
+  "includeData": true,
+  "includeLogs": true,
+  "logQuantity": 50,
+  "item": 385750,
+  "fields": [
+    {
+      "fieldName": "Issue Type",
+      "id": "issuetype",
+      "fieldType": "issuetype",
+      "required": true,
+      "value": [
+        "MB Issue Type"
+      ],
+      "definedValues": []
+    },
+    {
+      "fieldName": "Parent",
+      "id": "parent",
+      "fieldType": "issuelink",
+      "required": false,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Found In Version",
+      "id": "customfield_10151",
+      "fieldType": "array",
+      "required": false,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Severity",
+      "id": "customfield_10030",
+      "fieldType": "string",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "TT Short text",
+      "id": "customfield_10152",
+      "fieldType": "string",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Custom field",
+      "id": "customfield_10031",
+      "fieldType": "string",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "TT Paragraph",
+      "id": "customfield_10153",
+      "fieldType": "string",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "New field",
+      "id": "customfield_10032",
+      "fieldType": "string",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Fix versions",
+      "id": "fixVersions",
+      "fieldType": "array",
+      "required": false,
+      "definedValues": [
+        {
+          "valueId": "10000",
+          "valueName": "EV_v20.2.00"
+        },
+        {
+          "valueId": "10033",
+          "valueName": "EV_v20.2.01"
+        }
+      ]
+    },
+    {
+      "fieldName": "TT Date",
+      "id": "customfield_10154",
+      "fieldType": "date",
+      "required": false,
+      "definedValues": []
+    },
+    {
+      "fieldName": "TT Number",
+      "id": "customfield_10155",
+      "fieldType": "number",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Custom field from Helen",
+      "id": "customfield_10034",
+      "fieldType": "string",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "TT Time Stamp",
+      "id": "customfield_10156",
+      "fieldType": "datetime",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "TT Labels",
+      "id": "customfield_10157",
+      "fieldType": "array",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "TT Dropdown",
+      "id": "customfield_10158",
+      "fieldType": "option",
+      "required": true,
+      "definedValues": [
+        {
+          "valueId": "10101",
+          "valueName": "Option 1"
+        },
+        {
+          "valueId": "10102",
+          "valueName": "Option 2"
+        },
+        {
+          "valueId": "10103",
+          "valueName": "Option 3"
+        }
+      ]
+    },
+    {
+      "fieldName": "RP field",
+      "id": "customfield_10029",
+      "fieldType": "string",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Flagged",
+      "id": "customfield_10021",
+      "fieldType": "array",
+      "required": false,
+      "definedValues": [
+        {
+          "valueId": "10019",
+          "valueName": "Impediment"
+        }
+      ]
+    },
+    {
+      "fieldName": "Target start",
+      "id": "customfield_10022",
+      "fieldType": "date",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Priority",
+      "id": "priority",
+      "fieldType": "priority",
+      "required": true,
+      "definedValues": [
+        {
+          "valueId": "1",
+          "valueName": "Highest"
+        },
+        {
+          "valueId": "2",
+          "valueName": "High"
+        },
+        {
+          "valueId": "3",
+          "valueName": "Medium"
+        },
+        {
+          "valueId": "4",
+          "valueName": "CustomName"
+        },
+        {
+          "valueId": "5",
+          "valueName": "Lowest"
+        }
+      ]
+    },
+    {
+      "fieldName": "Target end",
+      "id": "customfield_10023",
+      "fieldType": "date",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "[CHART] Date of First Response",
+      "id": "customfield_10024",
+      "fieldType": "datetime",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "[CHART] Time in Status",
+      "id": "customfield_10025",
+      "fieldType": "any",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Labels",
+      "id": "labels",
+      "fieldType": "array",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Story point estimate",
+      "id": "customfield_10016",
+      "fieldType": "number",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Rank",
+      "id": "customfield_10019",
+      "fieldType": "any",
+      "required": false,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Linked Issues",
+      "id": "issuelinks",
+      "fieldType": "array",
+      "required": false,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Assignee",
+      "id": "assignee",
+      "fieldType": "user",
+      "required": false,
+      "commandName": "searchUsers",
+      "definedValues": []
+    },
+    {
+      "fieldName": "Goals",
+      "id": "customfield_10050",
+      "fieldType": "array",
+      "required": false,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Nina Test",
+      "id": "customfield_10051",
+      "fieldType": "string",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Description",
+      "id": "description",
+      "fieldType": "string",
+      "required": false,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Request Type",
+      "id": "customfield_10010",
+      "fieldType": "sd-customerrequesttype",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Start date",
+      "id": "customfield_10015",
+      "fieldType": "date",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Change type",
+      "id": "customfield_10005",
+      "fieldType": "option",
+      "required": true,
+      "definedValues": [
+        {
+          "valueId": "10004",
+          "valueName": "Standard"
+        },
+        {
+          "valueId": "10005",
+          "valueName": "Normal"
+        },
+        {
+          "valueId": "10006",
+          "valueName": "Emergency"
+        }
+      ]
+    },
+    {
+      "fieldName": "Change risk",
+      "id": "customfield_10006",
+      "fieldType": "option",
+      "required": true,
+      "definedValues": [
+        {
+          "valueId": "10007",
+          "valueName": "Critical"
+        },
+        {
+          "valueId": "10008",
+          "valueName": "High"
+        },
+        {
+          "valueId": "10009",
+          "valueName": "Medium"
+        },
+        {
+          "valueId": "10010",
+          "valueName": "Low"
+        }
+      ]
+    },
+    {
+      "fieldName": "Change reason",
+      "id": "customfield_10007",
+      "fieldType": "option",
+      "required": true,
+      "definedValues": [
+        {
+          "valueId": "10011",
+          "valueName": "Repair"
+        },
+        {
+          "valueId": "10012",
+          "valueName": "Upgrade"
+        },
+        {
+          "valueId": "10013",
+          "valueName": "Maintenance"
+        },
+        {
+          "valueId": "10014",
+          "valueName": "New functionality"
+        },
+        {
+          "valueId": "10015",
+          "valueName": "Other"
+        }
+      ]
+    },
+    {
+      "fieldName": "Actual start",
+      "id": "customfield_10008",
+      "fieldType": "datetime",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Actual end",
+      "id": "customfield_10009",
+      "fieldType": "datetime",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Summary",
+      "id": "summary",
+      "fieldType": "string",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "TT People",
+      "id": "customfield_10160",
+      "fieldType": "array",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "TT Dependent dropdown",
+      "id": "customfield_10161",
+      "fieldType": "option-with-child",
+      "required": true,
+      "definedValues": [
+        {
+          "valueId": "10107",
+          "valueName": "Option 1"
+        },
+        {
+          "valueId": "10108",
+          "valueName": "Option 2"
+        },
+        {
+          "valueId": "10109",
+          "valueName": "Option 3"
+        }
+      ]
+    },
+    {
+      "fieldName": "Approvals",
+      "id": "customfield_10085",
+      "fieldType": "sd-approvals",
+      "required": false,
+      "definedValues": []
+    },
+    {
+      "fieldName": "TT URL",
+      "id": "customfield_10162",
+      "fieldType": "string",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Project overview key",
+      "id": "customfield_10041",
+      "fieldType": "string",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Project overview status",
+      "id": "customfield_10042",
+      "fieldType": "string",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Design",
+      "id": "customfield_10043",
+      "fieldType": "array",
+      "required": false,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Vulnerability",
+      "id": "customfield_10044",
+      "fieldType": "any",
+      "required": false,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Development",
+      "id": "customfield_10000",
+      "fieldType": "any",
+      "required": false,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Team",
+      "id": "customfield_10001",
+      "fieldType": "team",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Severity",
+      "id": "customfield_10045",
+      "fieldType": "option",
+      "required": true,
+      "definedValues": [
+        {
+          "valueId": "10021",
+          "valueName": "Critical"
+        },
+        {
+          "valueId": "10022",
+          "valueName": "Major"
+        },
+        {
+          "valueId": "10023",
+          "valueName": "Minor"
+        },
+        {
+          "valueId": "10024",
+          "valueName": "Trivial"
+        },
+        {
+          "valueId": "10028",
+          "valueName": "New option"
+        },
+        {
+          "valueId": "10033",
+          "valueName": "New option 2"
+        },
+        {
+          "valueId": "10035",
+          "valueName": "New option 3"
+        }
+      ]
+    },
+    {
+      "fieldName": "Priority Custom",
+      "id": "customfield_10046",
+      "fieldType": "option",
+      "required": true,
+      "definedValues": [
+        {
+          "valueId": "10026",
+          "valueName": "Option 1"
+        },
+        {
+          "valueId": "10027",
+          "valueName": "Option 2"
+        },
+        {
+          "valueId": "10068",
+          "valueName": "Very critical"
+        }
+      ]
+    },
+    {
+      "fieldName": "Affected version from Helen",
+      "id": "customfield_10047",
+      "fieldType": "array",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Approvers",
+      "id": "customfield_10003",
+      "fieldType": "array",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Impact",
+      "id": "customfield_10004",
+      "fieldType": "option",
+      "required": true,
+      "definedValues": [
+        {
+          "valueId": "10000",
+          "valueName": "Extensive / Widespread"
+        },
+        {
+          "valueId": "10001",
+          "valueName": "Significant / Large"
+        },
+        {
+          "valueId": "10002",
+          "valueName": "Moderate / Limited"
+        },
+        {
+          "valueId": "10003",
+          "valueName": "Minor / Localized"
+        }
+      ]
+    },
+    {
+      "fieldName": "Affected version",
+      "id": "customfield_10048",
+      "fieldType": "string",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "TT Checkbox",
+      "id": "customfield_10159",
+      "fieldType": "array",
+      "required": true,
+      "definedValues": [
+        {
+          "valueId": "10104",
+          "valueName": "Option 1"
+        },
+        {
+          "valueId": "10105",
+          "valueName": "Option 2"
+        },
+        {
+          "valueId": "10106",
+          "valueName": "Option 3"
+        }
+      ]
+    },
+    {
+      "fieldName": "MB Found In Version",
+      "id": "customfield_10118",
+      "fieldType": "array",
+      "required": true,
+      "definedValues": []
+    },
+    {
+      "fieldName": "Due date",
+      "id": "duedate",
+      "fieldType": "date",
+      "required": true,
+      "definedValues": []
+    }
+  ]
+}

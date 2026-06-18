@@ -13,37 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.reportportal.extension.jira.command;
 
 import static java.util.Optional.ofNullable;
 
-import com.epam.reportportal.extension.ProjectMemberCommand;
+import com.epam.reportportal.api.model.PluginCommandRQ;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.extension.command.AbstractExtensionCommand;
 import com.epam.reportportal.extension.jira.client.JiraRestClient;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.dto.UserDto;
-import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
-import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepositoryCustom;
-import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
  * @author <a href="mailto:andrei_piankouski@epam.com">Andrei Piankouski</a>
  */
-public class UserSearchCommand extends ProjectMemberCommand<List<UserDto>> {
+public class UserSearchCommand extends AbstractExtensionCommand<List<UserDto>> {
 
   public static final String SEARCH_TERM = "term";
   private final CloudJiraClientProvider cloudJiraClientProvider;
 
   public UserSearchCommand(ProjectRepository projectRepository, CloudJiraClientProvider cloudJiraClientProvider,
-      OrganizationRepositoryCustom organizationRepository) {
-    super(projectRepository, organizationRepository);
+      OrganizationUserRepository organizationUserRepository,
+      OrganizationRepository organizationRepository,
+      ProjectUserRepository projectUserRepository) {
+    super(projectRepository, organizationUserRepository, organizationRepository, projectUserRepository);
     this.cloudJiraClientProvider = cloudJiraClientProvider;
+
+    // Set required permission levels
+    this.minProjectRole = ProjectRole.EDITOR;
+    this.minOrgRole = OrganizationRole.MANAGER;
+    this.minUserRole = UserRole.ADMINISTRATOR;
   }
 
   @Override
-  protected List<UserDto> invokeCommand(Integration integration, Map<String, Object> params) {
+  protected List<UserDto> invokeCommand(Integration integration, PluginCommandRQ pluginCommandRq) {
+    var params = pluginCommandRq.getArguments();
     JiraRestClient userClient = cloudJiraClientProvider.getApiClient(integration.getParams());
     String username = (String) ofNullable(params.get(SEARCH_TERM)).orElse("");
 

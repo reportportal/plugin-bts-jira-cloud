@@ -6,8 +6,6 @@
   "groupId": "com.atlassian.jira.rest",
   "artifactId": "client",
   "dateLibrary": "java8",
-  "generateConstructorWithAllArgs": true,
-  "generatedConstructorWithRequiredArgs": true,
   "generateClientAsBean": true,
   "hideGenerationTimestamp": true,
   "interfaceOnly": true,
@@ -15,6 +13,9 @@
   "documentationProvider": "none",
   "openapiNormalizer": {
     "REF_AS_PARENT_IN_ALLOF": true
+  },
+  "modelNameMappings": {
+    "Locale": "JiraLocale"
   },
   "java21": true,
   "useSpringBoot3": true,

@@ -19,6 +19,7 @@ package com.epam.reportportal.extension.jira.command;
 import static com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties.PROJECT;
 import static com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties.URL;
 
+import com.epam.reportportal.api.model.PluginCommandRQ;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,8 +36,9 @@ class GetIssueTypesCommandTest extends BaseCommandTest {
     params.put(PROJECT.getName(), PROJECT.getParam(INTEGRATION.getParams()));
     params.put(URL.getName(), URL.getParam(INTEGRATION.getParams()));
 
-    var command = new GetIssueTypesCommand(projectRepository, cloudJiraClientProvider, organizationRepositoryCustom);
-    List<String> response = command.invokeCommand(INTEGRATION, params);
+    var command = new GetIssueTypesCommand(projectRepository, cloudJiraClientProvider, organizationUserRepository,
+        organizationRepository, projectUserRepository);
+    List<String> response = command.invokeCommand(INTEGRATION, new PluginCommandRQ().arguments(params));
     Assertions.assertFalse(response.isEmpty());
   }
 }

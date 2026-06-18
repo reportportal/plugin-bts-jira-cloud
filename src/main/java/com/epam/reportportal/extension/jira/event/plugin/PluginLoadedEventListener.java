@@ -16,20 +16,14 @@
 package com.epam.reportportal.extension.jira.event.plugin;
 
 import com.epam.reportportal.base.core.events.domain.PluginUploadedEvent;
-import com.epam.reportportal.extension.jira.info.PluginInfoProvider;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationTypeRepository;
-import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
-import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams;
-import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationType;
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
+import com.epam.reportportal.extension.jira.info.PluginInfoProvider;
 import org.springframework.context.ApplicationListener;
 
 /**
- * Event listener for plugin loaded events.
- * Updates integration type information when the Jira Cloud plugin is uploaded.
+ * Event listener for plugin loaded events. Updates integration type information when the Jira Cloud plugin is
+ * uploaded.
  *
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
  */
@@ -57,27 +51,12 @@ public class PluginLoadedEventListener implements ApplicationListener<PluginUplo
     }
 
     String eventPluginId = event.getPluginActivityResource().getName();
-    integrationTypeRepository.findByName(eventPluginId).ifPresent(integrationType -> {
-      createIntegration(eventPluginId, integrationType);
-      integrationTypeRepository.save(pluginInfoProvider.provide(integrationType));
-    });
+    integrationTypeRepository.findByName(eventPluginId)
+        .ifPresent(integrationType -> integrationTypeRepository.save(pluginInfoProvider.provide(integrationType)));
   }
 
   private boolean supports(PluginUploadedEvent event) {
     return pluginId.equals(event.getPluginActivityResource().getName());
   }
 
-  private void createIntegration(String name, IntegrationType integrationType) {
-    List<Integration> integrations = integrationRepository.findAllGlobalByType(integrationType);
-    if (integrations.isEmpty()) {
-      Integration integration = new Integration();
-      integration.setName(name);
-      integration.setType(integrationType);
-      integration.setCreationDate(Instant.now());
-      integration.setEnabled(true);
-      integration.setCreator("SYSTEM");
-      integration.setParams(new IntegrationParams(new HashMap<>()));
-      integrationRepository.save(integration);
-    }
-  }
 }
