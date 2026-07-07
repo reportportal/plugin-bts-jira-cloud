@@ -52,9 +52,9 @@ public class TestConnectionCommand extends AbstractExtensionCommand<Boolean> {
     this.cloudJiraClientProvider = cloudJiraClientProvider;
 
     // Set required permission levels
-    this.minProjectRole = ProjectRole.EDITOR;
-    this.minOrgRole = OrganizationRole.MANAGER;
-    this.minUserRole = UserRole.ADMINISTRATOR;
+    this.minProjectRole = ProjectRole.VIEWER;
+    this.minOrgRole = OrganizationRole.MEMBER;
+    this.minUserRole = UserRole.USER;
   }
 
   @Override
