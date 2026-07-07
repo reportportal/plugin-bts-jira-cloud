@@ -57,7 +57,8 @@ class IntegrationValidatorTest {
       "http://acme.atlassian.net/jira",
       "https://acme.atlassian.net/jira/admin",
       "https://acme.atlassian.net/jira?tab=1",
-      "https://acme.atlassian.net/jira#anchor"
+      "https://acme.atlassian.net/jira#anchor",
+      "https://evil.com/acme.atlassian.net/jira"
   }, delimiter = ',')
   void validateThirdPartyUrlFailed(String url) {
     Assertions.assertThrows(ReportPortalException.class, () ->
