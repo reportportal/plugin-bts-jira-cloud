@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  */
 public final class IntegrationValidator {
 
-  private static final String JIRA_URL_PATTERN = "https://[^?]*\\.(atlassian\\.(com|net)|jira\\.com)/?$";
+  private static final String JIRA_URL_PATTERN = "https://[^?]*\\.(atlassian\\.(com|net)|jira\\.com)(/jira)?/?$";
 
   private IntegrationValidator() {
     //static only
