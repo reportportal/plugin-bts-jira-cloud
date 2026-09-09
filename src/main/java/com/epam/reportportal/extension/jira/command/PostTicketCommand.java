@@ -41,6 +41,7 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.organization
 import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.extension.bugtracking.BtsActivityPublisher;
 import com.epam.reportportal.extension.command.AbstractExtensionCommand;
 import com.epam.reportportal.extension.jira.api.model.CreatedIssue;
 import com.epam.reportportal.extension.jira.api.model.IssueBean;
@@ -96,6 +97,8 @@ public class PostTicketCommand extends AbstractExtensionCommand<Ticket> {
 
   private final DataStoreService dataStoreService;
 
+  private final BtsActivityPublisher btsActivityPublisher;
+
   private static final String LINKED_ISSUE_TYPE = "Relates";
 
   public PostTicketCommand(ProjectRepository projectRepository,
@@ -104,12 +107,14 @@ public class PostTicketCommand extends AbstractExtensionCommand<Ticket> {
       JIRATicketDescriptionService descriptionService, DataStoreService dataStoreService,
       OrganizationUserRepository organizationUserRepository,
       OrganizationRepository organizationRepository,
-      ProjectUserRepository projectUserRepository) {
+      ProjectUserRepository projectUserRepository,
+      BtsActivityPublisher btsActivityPublisher) {
     super(projectRepository, organizationUserRepository, organizationRepository, projectUserRepository);
     this.requestEntityConverter = requestEntityConverter;
     this.cloudJiraClientProvider = cloudJiraClientProvider;
     this.descriptionService = descriptionService;
     this.dataStoreService = dataStoreService;
+    this.btsActivityPublisher = btsActivityPublisher;
 
     // Set required permission levels
     this.minProjectRole = ProjectRole.EDITOR;
@@ -201,10 +206,12 @@ public class PostTicketCommand extends AbstractExtensionCommand<Ticket> {
         linkIssues(client, issue, linkedIssue);
       }
 
-      return JIRATicketUtils.toTicket(issue,
+      Ticket ticket = JIRATicketUtils.toTicket(issue,
           CloudJiraProperties.URL.getParam(integration.getParams())
               .orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION,
                   "Url is not specified.")));
+      btsActivityPublisher.publishTicketPostedEvent(ticket, ticketRQ, pluginCommandRq.getContext(), integration);
+      return ticket;
 
     } catch (ReportPortalException e) {
       throw e;
