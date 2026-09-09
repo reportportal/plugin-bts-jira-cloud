@@ -31,6 +31,7 @@ import com.epam.reportportal.extension.CommonPluginCommand;
 import com.epam.reportportal.extension.IntegrationGroupEnum;
 import com.epam.reportportal.extension.PluginCommand;
 import com.epam.reportportal.extension.ReportPortalExtensionPoint;
+import com.epam.reportportal.extension.bugtracking.BtsActivityPublisher;
 import com.epam.reportportal.extension.command.ExtensionCommand;
 import com.epam.reportportal.extension.common.IntegrationTypeProperties;
 import com.epam.reportportal.extension.jira.command.GetIssueCommand;
@@ -134,6 +135,9 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
   @Autowired
   @Qualifier("attachmentDataStoreService")
   private DataStoreService dataStoreService;
+
+  @Autowired
+  private BtsActivityPublisher btsActivityPublisher;
 
   public CloudJiraExtension(Map<String, Object> initParams) {
     resourcesDir = IntegrationTypeProperties.RESOURCES_DIRECTORY.getValue(initParams).map(String::valueOf)
@@ -239,7 +243,8 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
         dataStoreService,
         organizationUserRepository,
         organizationRepository,
-        projectUserRepository
+        projectUserRepository,
+        btsActivityPublisher
     ));
     return commands.stream().collect(Collectors.toMap(ExtensionCommand::getName, it -> it));
   }

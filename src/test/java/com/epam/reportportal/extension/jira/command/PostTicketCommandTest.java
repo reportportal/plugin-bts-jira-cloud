@@ -29,6 +29,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import com.epam.reportportal.api.model.PluginCommandRQ;
+import com.epam.reportportal.extension.bugtracking.BtsActivityPublisher;
 import com.epam.reportportal.extension.jira.command.utils.JIRATicketDescriptionService;
 import com.epam.reportportal.extension.jira.utils.SampleData.WorkType;
 import com.epam.reportportal.extension.util.RequestEntityConverter;
@@ -62,6 +63,8 @@ class PostTicketCommandTest extends BaseCommandTest {
   TestItemRepository itemRepository;
   @Mock
   LogRepository logRepository;
+  @Mock
+  BtsActivityPublisher btsActivityPublisher;
 
   @ParameterizedTest
   @EnumSource(WorkType.class)
@@ -91,7 +94,7 @@ class PostTicketCommandTest extends BaseCommandTest {
 
     var command = new PostTicketCommand(projectRepository, requestEntityConverter, cloudJiraClientProvider,
         new JIRATicketDescriptionService(logRepository, itemRepository), dataStoreService,
-        organizationUserRepository, organizationRepository, projectUserRepository);
+        organizationUserRepository, organizationRepository, projectUserRepository, btsActivityPublisher);
     Ticket ticket = command.invokeCommand(INTEGRATION, new PluginCommandRQ().arguments(params));
 
     assertNotNull(ticket);
