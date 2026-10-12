@@ -120,8 +120,16 @@ public class JIRATicketDescriptionService {
       PostTicketRQ ticketRQ) {
     itemRepository.findById(backLinkId).ifPresent(item -> ofNullable(item.getLaunchId())
         .ifPresent(launchId -> {
-          List<Log> logs = logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsWithLimit(launchId,
-              Collections.singletonList(item.getItemId()), ticketRQ.getNumberOfLogs());
+          List<Log> logs;
+          if (Boolean.TRUE.equals(ticketRQ.getIsIncludeLogs())) {
+            logs = logRepository.findErrorFatalLogsUnderTestItemByLaunchIdAndTestItemIds(launchId,
+                Collections.singletonList(item.getItemId()));
+          } else if (Boolean.TRUE.equals(ticketRQ.getIsIncludeScreenshots())) {
+            logs = logRepository.findAllUnderTestItemByLaunchIdAndTestItemIdsWithLimit(launchId,
+                Collections.singletonList(item.getItemId()), ticketRQ.getNumberOfLogs());
+          } else {
+            logs = Collections.emptyList();
+          }
           if (CollectionUtils.isNotEmpty(logs) && (ticketRQ.getIsIncludeLogs() || ticketRQ.getIsIncludeScreenshots())) {
             descriptionBuilder.append("h3.*Test execution log:*\n")
                 .append(
