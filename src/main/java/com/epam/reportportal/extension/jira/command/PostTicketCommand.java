@@ -288,7 +288,9 @@ public class PostTicketCommand extends AbstractExtensionCommand<Ticket> {
     request.setEntity(entityBuilder.build());
     request.setHeader("X-Atlassian-Token", "no-check");
     request.setHeader("Authorization", "Basic " + getAuthorizationHeader(details.username(), details.credentials()));
-    HttpClient client = HttpClientBuilder.create().build();
+    HttpClient client = HttpClientBuilder.create()
+            .useSystemProperties()
+            .build();
     HttpResponse response = client.execute(request);
     Assert.isTrue(response.getCode() == 200, "Failed to upload attachment");
   }
