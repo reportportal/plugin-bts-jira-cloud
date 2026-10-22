@@ -70,15 +70,69 @@ public class JIRATicketUtils {
   private JIRATicketUtils() {
   }
 
+  private static final String SEVERITY_FIELD_ID = "customfield_22858";
+
   public static Ticket toTicket(IssueBean jiraIssue, String jiraUrl) {
     Ticket ticket = new Ticket();
     JsonNode jn = new ObjectMapper().valueToTree(jiraIssue);
+    JsonNode fields = jn.get("fields");
 
     ticket.setId(jiraIssue.getKey());
-    ticket.setSummary(jn.get("fields").get("summary").asText());
-    ticket.setStatus(jn.get("fields").get("status").get("statusCategory").get("name").asText());
+    ticket.setSummary(fields.get("summary").asText());
+    ticket.setStatus(extractStatusName(fields));
     ticket.setTicketUrl(stripEnd(jiraUrl, "/") + "/browse/" + jn.get("key").asText());
+    ticket.setReporter(extractUserDisplayName(fields.get("reporter")));
+    ticket.setAssignee(extractUserDisplayName(fields.get("assignee")));
+    ticket.setCreated(extractTextValue(fields.get("created")));
+    ticket.setSeverity(extractCustomFieldValue(fields.get(SEVERITY_FIELD_ID)));
     return ticket;
+  }
+
+  private static String extractStatusName(JsonNode fields) {
+    JsonNode status = fields.get("status");
+    if (status == null || status.isNull()) {
+      return null;
+    }
+    if (status.hasNonNull("name")) {
+      return status.get("name").asText();
+    }
+    JsonNode statusCategory = status.get("statusCategory");
+    return statusCategory != null && statusCategory.hasNonNull("name")
+        ? statusCategory.get("name").asText()
+        : null;
+  }
+
+  private static String extractUserDisplayName(JsonNode userNode) {
+    if (userNode == null || userNode.isNull()) {
+      return null;
+    }
+    if (userNode.hasNonNull("displayName")) {
+      return userNode.get("displayName").asText();
+    }
+    return extractTextValue(userNode);
+  }
+
+  private static String extractCustomFieldValue(JsonNode fieldNode) {
+    if (fieldNode == null || fieldNode.isNull()) {
+      return null;
+    }
+    if (fieldNode.isTextual() || fieldNode.isNumber()) {
+      return fieldNode.asText();
+    }
+    if (fieldNode.hasNonNull("value")) {
+      return fieldNode.get("value").asText();
+    }
+    if (fieldNode.hasNonNull("name")) {
+      return fieldNode.get("name").asText();
+    }
+    if (fieldNode.hasNonNull("displayName")) {
+      return fieldNode.get("displayName").asText();
+    }
+    return null;
+  }
+
+  private static String extractTextValue(JsonNode node) {
+    return node == null || node.isNull() ? null : node.asText();
   }
 
   public static IssueUpdateDetails toIssueInput(JiraRestClient client, Project jiraProject, IssueTypeDetails issueType,

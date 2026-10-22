@@ -16,6 +16,11 @@
 
 package com.epam.reportportal.extension.jira.command;
 
+import com.epam.reportportal.extension.CommonPluginCommand;
+import com.epam.reportportal.extension.jira.api.model.IssueBean;
+import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
+import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
+import com.epam.reportportal.extension.jira.command.utils.JIRATicketUtils;
 import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.infrastructure.model.externalsystem.Ticket;
 import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
@@ -31,6 +36,8 @@ import com.epam.reportportal.base.infrastructure.persistence.entity.project.Proj
 import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import java.util.List;
+import java.util.Map;
 import com.epam.reportportal.extension.command.AbstractExtensionCommand;
 import com.epam.reportportal.extension.jira.api.model.IssueBean;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
@@ -44,6 +51,14 @@ import java.util.Optional;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 public class GetIssueCommand extends AbstractExtensionCommand<Ticket> {
+
+  private static final List<String> GET_ISSUE_FIELDS = List.of(
+      "summary",
+      "status",
+      "reporter",
+      "assignee",
+      "created"
+  );
 
   private final String TICKET_ID = "ticketId";
   private final String PROJECT_ID = "projectId";
@@ -77,7 +92,7 @@ public class GetIssueCommand extends AbstractExtensionCommand<Ticket> {
     var ticketId = Optional.ofNullable(params.get(TICKET_ID))
         .map(String::valueOf)
         .orElseThrow(() -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, TICKET_ID + "  must be provided"));
-    var ticket = ticketRepository.findByTicketId(ticketId)
+    ticketRepository.findByTicketId(ticketId)
         .orElseThrow(
             () -> new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Ticket not found with id " + TICKET_ID));
     final Long projectId = (Long) Optional.ofNullable(params.get(PROJECT_ID))
@@ -102,7 +117,7 @@ public class GetIssueCommand extends AbstractExtensionCommand<Ticket> {
     var client = cloudJiraClientProvider.getApiClient(details);
     IssueBean issueBean;
     try {
-      issueBean = client.issuesApi().getIssue(ticketId, List.of("summary", "status"), false, null, null, false, false);
+      issueBean = client.issuesApi().getIssue(ticketId, GET_ISSUE_FIELDS, false, null, null, false, false);
     } catch (Exception e) {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR);
     }
@@ -110,10 +125,8 @@ public class GetIssueCommand extends AbstractExtensionCommand<Ticket> {
       return JIRATicketUtils.toTicket(issueBean, CloudJiraProperties.URL.getParam(details)
           .orElseThrow(
               () -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Url is not specified.")));
-    } else {
-      throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Ticket with id {} is not found", ticketId);
     }
-
+    throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Ticket with id {} is not found", ticketId);
   }
 
   @Override
