@@ -39,7 +39,6 @@ import com.epam.reportportal.base.infrastructure.persistence.binary.DataStoreSer
 import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
 import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,14 +47,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 
 @Slf4j
 class PostTicketCommandTest extends BaseCommandTest {
 
-  private final RequestEntityConverter requestEntityConverter = new RequestEntityConverter(objectMapper);
+  private final RequestEntityConverter requestEntityConverter = new RequestEntityConverter(jsonMapper);
 
   @Mock
   DataStoreService dataStoreService;
@@ -68,14 +66,14 @@ class PostTicketCommandTest extends BaseCommandTest {
 
   @ParameterizedTest
   @EnumSource(WorkType.class)
-  void postTicketCommand(WorkType issueType) throws JsonProcessingException {
+  void postTicketCommand(WorkType issueType) {
     if (disabled()) {
       return;
     }
     TestItem testItem = new TestItem();
     when(itemRepository.findById(anyLong())).thenReturn(Optional.of(testItem));
 
-    PostTicketRQ postTicketRQ = objectMapper.readValue(getSample(issueType), PostTicketRQ.class);
+    PostTicketRQ postTicketRQ = jsonMapper.readValue(getSample(issueType), PostTicketRQ.class);
 
     Map<String, Object> params = new HashMap<>(JIRA_COMMAND_PARAMS);
     params.put(PROJECT.getName(), PROJECT.getParam(INTEGRATION.getParams()));
@@ -84,7 +82,7 @@ class PostTicketCommandTest extends BaseCommandTest {
     params.put("entity", postTicketRQ);
 
     lenient().when(dataStoreService.load(anyString()))
-        .thenReturn(Optional.of(getClass().getClassLoader().getResourceAsStream("attachment.txt")));
+        .thenReturn(Optional.ofNullable(getClass().getClassLoader().getResourceAsStream("attachment.txt")));
 
     // TODO: mock log attachments
     lenient().when(itemRepository.findById(anyLong()))
@@ -94,7 +92,8 @@ class PostTicketCommandTest extends BaseCommandTest {
 
     var command = new PostTicketCommand(projectRepository, requestEntityConverter, cloudJiraClientProvider,
         new JIRATicketDescriptionService(logRepository, itemRepository), dataStoreService,
-        organizationUserRepository, organizationRepository, projectUserRepository, btsActivityPublisher);
+        organizationUserRepository, organizationRepository, projectUserRepository, btsActivityPublisher,
+        jsonMapper);
     Ticket ticket = command.invokeCommand(INTEGRATION, new PluginCommandRQ().arguments(params));
 
     assertNotNull(ticket);
@@ -107,11 +106,11 @@ class PostTicketCommandTest extends BaseCommandTest {
     String credentials = basicTextEncryptor.decrypt((String) INTEGRATION.getParams().getParams().get("apiToken"));
     //String url = (String) INTEGRATION.getParams().getParams().get("url");
 
-    RestTemplate restTemplate = new RestTemplateBuilder()
-        .basicAuthentication(username, credentials)
+    RestClient restClient = RestClient.builder()
+        .defaultHeaders(headers -> headers.setBasicAuth(username, credentials))
         .build();
 
-    var jiraTicket = restTemplate.getForObject(ticket.getTicketUrl(), String.class);
+    var jiraTicket = restClient.get().uri(ticket.getTicketUrl()).retrieve().body(String.class);
     log.info(ticket.getTicketUrl());
     // TODO: make required checks with jira ticket
   }

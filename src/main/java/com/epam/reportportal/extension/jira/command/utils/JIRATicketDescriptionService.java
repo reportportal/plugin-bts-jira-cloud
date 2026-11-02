@@ -35,7 +35,6 @@ import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tika.config.TikaConfig;
 import org.apache.tika.mime.MimeType;
 import org.apache.tika.mime.MimeTypeException;
 import org.apache.tika.mime.MimeTypes;
@@ -62,7 +61,7 @@ public class JIRATicketDescriptionService {
   private final LogRepository logRepository;
   private final TestItemRepository itemRepository;
   private final DateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-  private final MimeTypes mimeRepository = TikaConfig.getDefaultConfig().getMimeRepository();
+  private final MimeTypes mimeRepository = MimeTypes.getDefaultMimeTypes();
 
   public JIRATicketDescriptionService(LogRepository logRepository, TestItemRepository itemRepository) {
     this.logRepository = logRepository;

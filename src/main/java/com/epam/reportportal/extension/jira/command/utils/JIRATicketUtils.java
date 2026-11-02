@@ -35,8 +35,6 @@ import com.epam.reportportal.base.infrastructure.persistence.commons.Predicates;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule;
 import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
 import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -51,6 +49,8 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Provide toolscom.epam.reportportal.extension.bugtracking.jira for working with JIRA tickets(conversion).
@@ -70,20 +70,20 @@ public class JIRATicketUtils {
   private JIRATicketUtils() {
   }
 
-  public static Ticket toTicket(IssueBean jiraIssue, String jiraUrl) {
+  public static Ticket toTicket(IssueBean jiraIssue, String jiraUrl, JsonMapper jsonMapper) {
     Ticket ticket = new Ticket();
-    JsonNode jn = new ObjectMapper().valueToTree(jiraIssue);
+    JsonNode jn = jsonMapper.valueToTree(jiraIssue);
 
     ticket.setId(jiraIssue.getKey());
-    ticket.setSummary(jn.get("fields").get("summary").asText());
-    ticket.setStatus(jn.get("fields").get("status").get("statusCategory").get("name").asText());
-    ticket.setTicketUrl(stripEnd(jiraUrl, "/") + "/browse/" + jn.get("key").asText());
+    ticket.setSummary(jn.get("fields").get("summary").asString());
+    ticket.setStatus(jn.get("fields").get("status").get("statusCategory").get("name").asString());
+    ticket.setTicketUrl(stripEnd(jiraUrl, "/") + "/browse/" + jn.get("key").asString());
     return ticket;
   }
 
   public static IssueUpdateDetails toIssueInput(JiraRestClient client, Project jiraProject, IssueTypeDetails issueType,
       PostTicketRQ ticketRQ,
-      JIRATicketDescriptionService descriptionService) {
+      JIRATicketDescriptionService descriptionService, JsonMapper jsonMapper) {
     String userDefinedDescription = "";
     IssueUpdateDetails issueUpdateDetails = new IssueUpdateDetails();
 
@@ -172,7 +172,7 @@ public class JIRATicketUtils {
         try {
           List<Object> arrayOfValues = new ArrayList<>();
           for (Object allowedValue : new ArrayList<>(cimFieldInfo.getAllowedValues())) {
-            mapAllowedValue(one, cimFieldInfo, allowedValue, arrayOfValues);
+            mapAllowedValue(one, cimFieldInfo, allowedValue, arrayOfValues, jsonMapper);
           }
           if (one.getFieldType().equalsIgnoreCase(IssueFieldType.ARRAY.getName())) {
             issueUpdateDetails.putFieldsItem(one.getId(), arrayOfValues);
@@ -225,13 +225,13 @@ public class JIRATicketUtils {
   }
 
   private static void mapAllowedValue(PostFormField postFormField, FieldMetadata fieldMetadata, Object allowedValue,
-      List<Object> result) {
-    JsonNode jn = new ObjectMapper().valueToTree(allowedValue);
-    if (isCustomField(jn) && postFormField.getValue().contains(jn.get("value").asText())) {
-      result.add(Map.entry("id", jn.get("id").asText()));
+      List<Object> result, JsonMapper jsonMapper) {
+    JsonNode jn = jsonMapper.valueToTree(allowedValue);
+    if (isCustomField(jn) && postFormField.getValue().contains(jn.get("value").asString())) {
+      result.add(Map.entry("id", jn.get("id").asString()));
     } else if (isMultiselectField(postFormField, fieldMetadata)
-        && postFormField.getValue().contains(jn.get("name").asText())) {
-      result.add(Map.entry("name", jn.get("name").asText()));
+        && postFormField.getValue().contains(jn.get("name").asString())) {
+      result.add(Map.entry("name", jn.get("name").asString()));
     }
 
   }
@@ -310,7 +310,7 @@ public class JIRATicketUtils {
   }
 
   public static boolean isCustomField(JsonNode allowedValue) {
-    return allowedValue.get("self").asText().contains("/customFieldOption/");
+    return allowedValue.get("self").asString().contains("/customFieldOption/");
   }
 
 

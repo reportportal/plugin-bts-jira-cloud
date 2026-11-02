@@ -27,12 +27,6 @@ import com.epam.reportportal.base.infrastructure.persistence.dao.organization.Or
 import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
 import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,6 +43,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import tools.jackson.databind.json.JsonMapper;
 
 // set values in 'integration.properties' to enable the tests
 @Slf4j
@@ -70,16 +65,10 @@ public abstract class BaseCommandTest {
   public static final Integration INTEGRATION = new Integration();
 
   public static BasicTextEncryptor basicTextEncryptor = new BasicTextEncryptor();
-  public static ObjectMapper objectMapper = new ObjectMapper();
+  public static final JsonMapper jsonMapper = JsonMapper.builder().build();
 
   static {
     basicTextEncryptor.setPassword("123");
-
-    objectMapper.setAnnotationIntrospector(new JacksonAnnotationIntrospector());
-    objectMapper.configure(MapperFeature.DEFAULT_VIEW_INCLUSION, true);
-    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-    objectMapper.registerModule(new JavaTimeModule());
   }
 
   CloudJiraClientProvider cloudJiraClientProvider = new CloudJiraClientProvider(basicTextEncryptor);
