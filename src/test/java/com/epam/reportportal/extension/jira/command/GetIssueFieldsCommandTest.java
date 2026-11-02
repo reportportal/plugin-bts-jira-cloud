@@ -24,8 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import com.epam.reportportal.api.model.PluginCommandRQ;
 import com.epam.reportportal.base.infrastructure.model.externalsystem.PostFormField;
 import com.epam.reportportal.extension.jira.utils.SampleData.WorkType;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +36,7 @@ class GetIssueFieldsCommandTest extends BaseCommandTest {
 
   @ParameterizedTest
   @EnumSource(value = WorkType.class)
-  void getIssueFields(WorkType workType) throws JsonProcessingException {
+  void getIssueFields(WorkType workType) {
     if (disabled()) {
       return;
     }
@@ -49,10 +47,10 @@ class GetIssueFieldsCommandTest extends BaseCommandTest {
     params.put(ISSUE_TYPE, workType.name());
 
     var command = new GetIssueFieldsCommand(projectRepository, organizationUserRepository, organizationRepository,
-        projectUserRepository, cloudJiraClientProvider);
+        projectUserRepository, cloudJiraClientProvider, jsonMapper);
     List<PostFormField> response = command.invokeCommand(INTEGRATION, new PluginCommandRQ().arguments(params));
 
-    log.info(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(response));
+    log.info(jsonMapper.writerWithDefaultPrettyPrinter().writeValueAsString(response));
     assertFalse(response.isEmpty());
   }
 }

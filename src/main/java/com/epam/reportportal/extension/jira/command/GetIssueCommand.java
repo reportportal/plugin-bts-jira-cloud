@@ -39,6 +39,7 @@ import com.epam.reportportal.extension.jira.command.utils.JIRATicketUtils;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -51,6 +52,7 @@ public class GetIssueCommand extends AbstractExtensionCommand<Ticket> {
   private final TicketRepository ticketRepository;
   private final IntegrationRepository integrationRepository;
   private final CloudJiraClientProvider cloudJiraClientProvider;
+  private final JsonMapper jsonMapper;
 
   public GetIssueCommand(TicketRepository ticketRepository,
       IntegrationRepository integrationRepository,
@@ -58,8 +60,10 @@ public class GetIssueCommand extends AbstractExtensionCommand<Ticket> {
       ProjectRepository projectRepository,
       OrganizationUserRepository organizationUserRepository,
       OrganizationRepository organizationRepository,
-      ProjectUserRepository projectUserRepository) {
+      ProjectUserRepository projectUserRepository,
+      JsonMapper jsonMapper) {
     super(projectRepository, organizationUserRepository, organizationRepository, projectUserRepository);
+    this.jsonMapper = jsonMapper;
     this.ticketRepository = ticketRepository;
     this.integrationRepository = integrationRepository;
     this.cloudJiraClientProvider = cloudJiraClientProvider;
@@ -109,7 +113,8 @@ public class GetIssueCommand extends AbstractExtensionCommand<Ticket> {
     if (Objects.nonNull(issueBean)) {
       return JIRATicketUtils.toTicket(issueBean, CloudJiraProperties.URL.getParam(details)
           .orElseThrow(
-              () -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Url is not specified.")));
+              () -> new ReportPortalException(ErrorType.UNABLE_INTERACT_WITH_INTEGRATION, "Url is not specified.")),
+          jsonMapper);
     } else {
       throw new ReportPortalException(ErrorType.BAD_REQUEST_ERROR, "Ticket with id {} is not found", ticketId);
     }

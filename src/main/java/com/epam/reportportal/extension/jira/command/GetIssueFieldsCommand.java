@@ -48,8 +48,6 @@ import com.epam.reportportal.extension.jira.api.model.Version;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
 import com.epam.reportportal.extension.jira.command.utils.JIRATicketUtils;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -58,6 +56,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -69,13 +69,17 @@ public class GetIssueFieldsCommand extends AbstractExtensionCommand<List<PostFor
 
   private final CloudJiraClientProvider cloudJiraClientProvider;
 
+  private final JsonMapper jsonMapper;
+
   public GetIssueFieldsCommand(ProjectRepository projectRepository,
       OrganizationUserRepository organizationUserRepository,
       OrganizationRepository organizationRepository,
       ProjectUserRepository projectUserRepository,
-      CloudJiraClientProvider cloudJiraClientProvider) {
+      CloudJiraClientProvider cloudJiraClientProvider,
+      JsonMapper jsonMapper) {
     super(projectRepository, organizationUserRepository, organizationRepository, projectUserRepository);
     this.cloudJiraClientProvider = cloudJiraClientProvider;
+    this.jsonMapper = jsonMapper;
 
     // Set required permission levels
     this.minProjectRole = ProjectRole.EDITOR;
@@ -141,9 +145,9 @@ public class GetIssueFieldsCommand extends AbstractExtensionCommand<List<PostFor
         // Provide values for custom fields with predefined options
         if (issueField.getValue().getAllowedValues() != null) {
           allowed = issueField.getValue().getAllowedValues().stream()
-              .map(value -> (JsonNode) new ObjectMapper().valueToTree(value))
+              .map(value -> (JsonNode) jsonMapper.valueToTree(value))
               .filter(JIRATicketUtils::isCustomField)
-              .map(jn -> new AllowedValue(jn.get("id").asText(), jn.get("value").asText()))
+              .map(jn -> new AllowedValue(jn.get("id").asString(), jn.get("value").asString()))
               .collect(Collectors.toList());
         }
 
@@ -164,8 +168,8 @@ public class GetIssueFieldsCommand extends AbstractExtensionCommand<List<PostFor
         }
         if (fieldID.equalsIgnoreCase(PRIORITY_FIELD.getValue())) {
           allowed = issueField.getValue().getAllowedValues().stream()
-              .map(value -> (JsonNode) new ObjectMapper().valueToTree(value))
-              .map(jn -> new AllowedValue(jn.get("id").asText(), jn.get("name").asText()))
+              .map(value -> (JsonNode) jsonMapper.valueToTree(value))
+              .map(jn -> new AllowedValue(jn.get("id").asString(), jn.get("name").asString()))
               .collect(Collectors.toList());
         }
         if (fieldID.equalsIgnoreCase(ISSUE_TYPE_FIELD.getValue())) {

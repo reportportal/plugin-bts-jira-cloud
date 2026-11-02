@@ -48,7 +48,6 @@ import com.epam.reportportal.extension.jira.event.plugin.PluginLoadedEventListen
 import com.epam.reportportal.extension.jira.info.impl.PluginInfoProviderImpl;
 import com.epam.reportportal.extension.jira.utils.MemoizingSupplier;
 import com.epam.reportportal.extension.util.RequestEntityConverter;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -65,6 +64,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author <a href="mailto:ivan_budayeu@epam.com">Ivan Budayeu</a>
@@ -100,7 +100,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
   @Autowired
   private ApplicationContext applicationContext;
   @Autowired
-  private ObjectMapper objectMapper;
+  private JsonMapper objectMapper;
 
   @Autowired
   private IntegrationTypeRepository integrationTypeRepository;
@@ -166,11 +166,14 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
     return params;
   }
 
+  // TODO: remove both overrides once service-api drops the deprecated abstract methods
+  @Deprecated
   @Override
   public PluginCommand<?> getIntegrationCommand(String commandName) {
     return null; // pluginCommandMapping.get().get(commandName);
   }
 
+  @Deprecated
   @Override
   public CommonPluginCommand<?> getCommonCommand(String commandName) {
     return null; // commonPluginCommandMapping.get().get(commandName);
@@ -215,7 +218,8 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
     commands.add(new RetrieveUpdateParamsCommand(projectRepository, organizationUserRepository,
         organizationRepository, projectUserRepository));
     commands.add(new GetIssueCommand(ticketRepository, integrationRepository, cloudJiraClientProviderSupplier.get(),
-        projectRepository, organizationUserRepository, organizationRepository, projectUserRepository));
+        projectRepository, organizationUserRepository, organizationRepository, projectUserRepository,
+        objectMapper));
     return commands.stream()
         .collect(Collectors.toMap(ExtensionCommand::getName, it -> it));
   }
@@ -232,7 +236,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
             organizationRepository, projectUserRepository));
     commands.add(
         new GetIssueFieldsCommand(projectRepository, organizationUserRepository, organizationRepository,
-            projectUserRepository, cloudJiraClientProviderSupplier.get()));
+            projectUserRepository, cloudJiraClientProviderSupplier.get(), objectMapper));
     commands.add(
         new GetIssueTypesCommand(projectRepository, cloudJiraClientProviderSupplier.get(), organizationUserRepository,
             organizationRepository, projectUserRepository));
@@ -244,7 +248,8 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
         organizationUserRepository,
         organizationRepository,
         projectUserRepository,
-        btsActivityPublisher
+        btsActivityPublisher,
+        objectMapper
     ));
     return commands.stream().collect(Collectors.toMap(ExtensionCommand::getName, it -> it));
   }

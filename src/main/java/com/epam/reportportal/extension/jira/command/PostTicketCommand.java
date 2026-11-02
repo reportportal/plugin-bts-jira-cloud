@@ -82,6 +82,7 @@ import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpResponse;
 import org.springframework.util.Assert;
 import org.springframework.web.client.RestClientException;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
@@ -99,6 +100,8 @@ public class PostTicketCommand extends AbstractExtensionCommand<Ticket> {
 
   private final BtsActivityPublisher btsActivityPublisher;
 
+  private final JsonMapper jsonMapper;
+
   private static final String LINKED_ISSUE_TYPE = "Relates";
 
   public PostTicketCommand(ProjectRepository projectRepository,
@@ -108,8 +111,10 @@ public class PostTicketCommand extends AbstractExtensionCommand<Ticket> {
       OrganizationUserRepository organizationUserRepository,
       OrganizationRepository organizationRepository,
       ProjectUserRepository projectUserRepository,
-      BtsActivityPublisher btsActivityPublisher) {
+      BtsActivityPublisher btsActivityPublisher,
+      JsonMapper jsonMapper) {
     super(projectRepository, organizationUserRepository, organizationRepository, projectUserRepository);
+    this.jsonMapper = jsonMapper;
     this.requestEntityConverter = requestEntityConverter;
     this.cloudJiraClientProvider = cloudJiraClientProvider;
     this.descriptionService = descriptionService;
@@ -184,7 +189,7 @@ public class PostTicketCommand extends AbstractExtensionCommand<Ticket> {
                   integration.getProject())));
 
       IssueUpdateDetails issueRequest = JIRATicketUtils.toIssueInput(client, jiraProject, projectIssueType, ticketRQ,
-          descriptionService);
+          descriptionService, jsonMapper);
 
 
       /*
@@ -209,7 +214,7 @@ public class PostTicketCommand extends AbstractExtensionCommand<Ticket> {
       Ticket ticket = JIRATicketUtils.toTicket(issue,
           CloudJiraProperties.URL.getParam(integration.getParams())
               .orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION,
-                  "Url is not specified.")));
+                  "Url is not specified.")), jsonMapper);
       btsActivityPublisher.publishTicketPostedEvent(ticket, ticketRQ, pluginCommandRq.getContext(), integration);
       return ticket;
 
