@@ -13,65 +13,82 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.reportportal.extension.jira.command;
 
-import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-import static com.epam.reportportal.rules.exception.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
+import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
 
-import com.epam.reportportal.extension.CommonPluginCommand;
+import com.epam.reportportal.api.model.PluginCommandRQ;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.extension.command.AbstractExtensionCommand;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
-import com.epam.reportportal.rules.exception.ErrorType;
-import com.epam.reportportal.rules.exception.ReportPortalException;
 import com.google.common.collect.Maps;
 import java.util.Map;
-import org.apache.commons.collections.MapUtils;
-import org.jasypt.util.text.BasicTextEncryptor;
-
+import org.apache.commons.collections4.MapUtils;
 
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-public class RetrieveCreationParamsCommand implements CommonPluginCommand<Map<String, Object>> {
+public class RetrieveCreationParamsCommand extends AbstractExtensionCommand<Map<String, Object>> {
 
-	private final BasicTextEncryptor textEncryptor;
+  public RetrieveCreationParamsCommand(
+      ProjectRepository projectRepository,
+      OrganizationUserRepository organizationUserRepository,
+      OrganizationRepository organizationRepository,
+      ProjectUserRepository projectUserRepository) {
+    super(projectRepository, organizationUserRepository, organizationRepository, projectUserRepository);
 
-	public RetrieveCreationParamsCommand(BasicTextEncryptor textEncryptor) {
-		this.textEncryptor = textEncryptor;
-	}
+    // Set required permission levels
+    this.minProjectRole = ProjectRole.EDITOR;
+    this.minOrgRole = OrganizationRole.MANAGER;
+    this.minUserRole = UserRole.ADMINISTRATOR;
+  }
 
-	@Override
-	public String getName() {
-		return "retrieveCreate";
-	}
+  @Override
+  public String getName() {
+    return "retrieveCreate";
+  }
 
-	@Override
-	//@param integration is always null because it can be not saved yet
-	public Map<String, Object> executeCommand(Map<String, Object> integrationParams) {
+  @Override
+  //@param integration is always null because it can be not saved yet
+  public Map<String, Object> executeCommand(PluginCommandRQ pluginCommandRq) {
+    var integrationParams = pluginCommandRq.getArguments();
+    expect(integrationParams, MapUtils::isNotEmpty).verify(ErrorType.BAD_REQUEST_ERROR,
+        "No integration params provided");
 
-		expect(integrationParams, MapUtils::isNotEmpty).verify(ErrorType.BAD_REQUEST_ERROR, "No integration params provided");
+    Map<String, Object> resultParams = Maps.newHashMapWithExpectedSize(CloudJiraProperties.values().length);
 
-		Map<String, Object> resultParams = Maps.newHashMapWithExpectedSize(CloudJiraProperties.values().length);
+    resultParams.put(CloudJiraProperties.PROJECT.getName(),
+        CloudJiraProperties.PROJECT.getParam(integrationParams)
+            .orElseThrow(
+                () -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "BTS project is not specified."))
+    );
+    resultParams.put(CloudJiraProperties.URL.getName(),
+        CloudJiraProperties.URL.getParam(integrationParams)
+            .orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "BTS url is not specified."))
+    );
 
-		resultParams.put(CloudJiraProperties.PROJECT.getName(),
-				CloudJiraProperties.PROJECT.getParam(integrationParams)
-						.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "BTS project is not specified."))
-		);
-		resultParams.put(CloudJiraProperties.URL.getName(),
-				CloudJiraProperties.URL.getParam(integrationParams)
-						.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "BTS url is not specified."))
-		);
+    resultParams.put(CloudJiraProperties.EMAIL.getName(),
+        CloudJiraProperties.EMAIL.getParam(integrationParams)
+            .orElseThrow(
+                () -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "Email value is not specified."))
+    );
 
+    resultParams.put(CloudJiraProperties.API_TOKEN.getName(),
+        CloudJiraProperties.API_TOKEN.getParam(integrationParams)
+            .orElseThrow(
+                () -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "API token value is not specified."))
+    );
 
-		resultParams.put(CloudJiraProperties.EMAIL.getName(),
-				CloudJiraProperties.EMAIL.getParam(integrationParams)
-						.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "Email value is not specified."))
-		);
-
-		resultParams.put(CloudJiraProperties.API_TOKEN.getName(),
-				textEncryptor.encrypt(CloudJiraProperties.API_TOKEN.getParam(integrationParams)
-						.orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "API token value is not specified.")))
-		);
-
-		return resultParams;
-	}
+    return resultParams;
+  }
 }

@@ -28,13 +28,13 @@ import com.epam.reportportal.extension.jira.api.model.Project;
 import com.epam.reportportal.extension.jira.api.model.ProjectIssueCreateMetadata;
 import com.epam.reportportal.extension.jira.api.model.User;
 import com.epam.reportportal.extension.jira.client.JiraRestClient;
-import com.epam.reportportal.model.externalsystem.PostFormField;
-import com.epam.reportportal.model.externalsystem.PostTicketRQ;
-import com.epam.reportportal.model.externalsystem.Ticket;
-import com.epam.reportportal.rules.commons.validation.BusinessRule;
-import com.epam.reportportal.rules.commons.validation.Suppliers;
-import com.epam.reportportal.rules.exception.ErrorType;
-import com.epam.ta.reportportal.commons.Predicates;
+import com.epam.reportportal.base.infrastructure.model.externalsystem.PostFormField;
+import com.epam.reportportal.base.infrastructure.model.externalsystem.PostTicketRQ;
+import com.epam.reportportal.base.infrastructure.model.externalsystem.Ticket;
+import com.epam.reportportal.base.infrastructure.persistence.commons.Predicates;
+import com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.Getter;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,7 +119,8 @@ public class JIRATicketUtils {
       // Skip issuetype and project fields cause got them in
       // issueInputBuilder already
       if (one.getId().equalsIgnoreCase(IssueField.ISSUE_TYPE_FIELD.value)
-          || one.getId().equalsIgnoreCase(IssueField.PROJECT_FIELD.value)) {
+          || one.getId()
+          .equalsIgnoreCase(IssueField.PROJECT_FIELD.value)) {
         continue;
       }
 

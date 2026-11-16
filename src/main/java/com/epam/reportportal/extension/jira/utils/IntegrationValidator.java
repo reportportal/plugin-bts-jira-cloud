@@ -16,11 +16,11 @@
 
 package com.epam.reportportal.extension.jira.utils;
 
-import com.epam.reportportal.rules.commons.validation.BusinessRule;
-import com.epam.reportportal.rules.commons.validation.Suppliers;
-import com.epam.reportportal.rules.exception.ErrorType;
-import com.epam.ta.reportportal.commons.Predicates;
-import com.epam.ta.reportportal.entity.integration.Integration;
+import com.epam.reportportal.base.infrastructure.persistence.commons.Predicates;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
+import com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule;
+import com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
 import java.util.regex.Pattern;
 
 /**
@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  */
 public final class IntegrationValidator {
 
-  private static final String JIRA_URL_PATTERN = "https://[^?]*\\.(atlassian\\.(com|net)|jira\\.com)/?$";
+  private static final String JIRA_URL_PATTERN = "https://[^/?]*\\.(atlassian\\.(com|net)|jira\\.com)(/jira)?/?$";
 
   private IntegrationValidator() {
     //static only
@@ -45,8 +45,6 @@ public final class IntegrationValidator {
         String.valueOf(integration.getParams().getParams().get("url")));
 
     BusinessRule.expect(valid, Predicates.equalTo(true))
-        .verify(ErrorType.BAD_REQUEST_ERROR,
-            Suppliers.formattedSupplier("Integration url is not acceptable")
-        );
+        .verify(ErrorType.BAD_REQUEST_ERROR, Suppliers.formattedSupplier("Integration url is not acceptable"));
   }
 }

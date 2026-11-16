@@ -28,15 +28,17 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+import com.epam.reportportal.api.model.PluginCommandRQ;
+import com.epam.reportportal.extension.bugtracking.BtsActivityPublisher;
 import com.epam.reportportal.extension.jira.command.utils.JIRATicketDescriptionService;
 import com.epam.reportportal.extension.jira.utils.SampleData.WorkType;
 import com.epam.reportportal.extension.util.RequestEntityConverter;
-import com.epam.reportportal.model.externalsystem.PostTicketRQ;
-import com.epam.reportportal.model.externalsystem.Ticket;
-import com.epam.ta.reportportal.binary.DataStoreService;
-import com.epam.ta.reportportal.dao.LogRepository;
-import com.epam.ta.reportportal.dao.TestItemRepository;
-import com.epam.ta.reportportal.entity.item.TestItem;
+import com.epam.reportportal.base.infrastructure.model.externalsystem.PostTicketRQ;
+import com.epam.reportportal.base.infrastructure.model.externalsystem.Ticket;
+import com.epam.reportportal.base.infrastructure.persistence.binary.DataStoreService;
+import com.epam.reportportal.base.infrastructure.persistence.dao.LogRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.TestItemRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.item.TestItem;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,6 +63,8 @@ class PostTicketCommandTest extends BaseCommandTest {
   TestItemRepository itemRepository;
   @Mock
   LogRepository logRepository;
+  @Mock
+  BtsActivityPublisher btsActivityPublisher;
 
   @ParameterizedTest
   @EnumSource(WorkType.class)
@@ -89,8 +93,9 @@ class PostTicketCommandTest extends BaseCommandTest {
         .thenReturn(new ArrayList<>());
 
     var command = new PostTicketCommand(projectRepository, requestEntityConverter, cloudJiraClientProvider,
-        new JIRATicketDescriptionService(logRepository, itemRepository), dataStoreService);
-    Ticket ticket = command.invokeCommand(INTEGRATION, params);
+        new JIRATicketDescriptionService(logRepository, itemRepository), dataStoreService,
+        organizationUserRepository, organizationRepository, projectUserRepository, btsActivityPublisher);
+    Ticket ticket = command.invokeCommand(INTEGRATION, new PluginCommandRQ().arguments(params));
 
     assertNotNull(ticket);
     verifyJiraTicket(ticket);

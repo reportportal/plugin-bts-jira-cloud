@@ -23,9 +23,10 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import com.epam.ta.reportportal.dao.IntegrationRepository;
-import com.epam.ta.reportportal.dao.TicketRepository;
-import com.epam.ta.reportportal.entity.bts.Ticket;
+import com.epam.reportportal.api.model.PluginCommandRQ;
+import com.epam.reportportal.base.infrastructure.persistence.dao.IntegrationRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.TicketRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.bts.Ticket;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -55,8 +56,9 @@ class GetIssueCommandTest extends BaseCommandTest {
     when(integrationRepository.findProjectBtsByUrlAndLinkedProject(anyString(), anyString(), anyLong()))
         .thenReturn(Optional.of(INTEGRATION));
 
-    var command = new GetIssueCommand(ticketRepository, integrationRepository, cloudJiraClientProvider);
-    Object response = command.executeCommand(params);
+    var command = new GetIssueCommand(ticketRepository, integrationRepository, cloudJiraClientProvider,
+        projectRepository, organizationUserRepository, organizationRepository, projectUserRepository);
+    Object response = command.executeCommand(new PluginCommandRQ().arguments(params));
 
     assertNotNull(response);
   }

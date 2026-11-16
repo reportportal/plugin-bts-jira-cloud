@@ -16,18 +16,33 @@
 
 package com.epam.reportportal.extension.jira.command;
 
+import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.equalTo;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.in;
+import static com.epam.reportportal.base.infrastructure.persistence.commons.Predicates.isNull;
+import static com.epam.reportportal.base.infrastructure.rules.commons.validation.BusinessRule.expect;
+import static com.epam.reportportal.base.infrastructure.rules.commons.validation.Suppliers.formattedSupplier;
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
 import static com.epam.reportportal.extension.jira.command.utils.JIRATicketUtils.getAuthorizationHeader;
 import static com.epam.reportportal.extension.util.CommandParamUtils.ENTITY_PARAM;
-import static com.epam.reportportal.rules.commons.validation.BusinessRule.expect;
-import static com.epam.reportportal.rules.commons.validation.Suppliers.formattedSupplier;
-import static com.epam.reportportal.rules.exception.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
-import static com.epam.ta.reportportal.commons.Predicates.equalTo;
-import static com.epam.ta.reportportal.commons.Predicates.in;
-import static com.epam.ta.reportportal.commons.Predicates.isNull;
-import static com.epam.ta.reportportal.commons.Predicates.not;
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toSet;
 
-import com.epam.reportportal.extension.ProjectMemberCommand;
+import com.epam.reportportal.api.model.PluginCommandRQ;
+import com.epam.reportportal.base.infrastructure.model.externalsystem.PostFormField;
+import com.epam.reportportal.base.infrastructure.model.externalsystem.PostTicketRQ;
+import com.epam.reportportal.base.infrastructure.model.externalsystem.Ticket;
+import com.epam.reportportal.base.infrastructure.persistence.binary.DataStoreService;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.extension.bugtracking.BtsActivityPublisher;
+import com.epam.reportportal.extension.command.AbstractExtensionCommand;
 import com.epam.reportportal.extension.jira.api.model.CreatedIssue;
 import com.epam.reportportal.extension.jira.api.model.IssueBean;
 import com.epam.reportportal.extension.jira.api.model.IssueLinkType;
@@ -44,13 +59,6 @@ import com.epam.reportportal.extension.jira.command.utils.JIRATicketDescriptionS
 import com.epam.reportportal.extension.jira.command.utils.JIRATicketUtils;
 import com.epam.reportportal.extension.util.RequestEntityConverter;
 import com.epam.reportportal.extension.util.RequestEntityValidator;
-import com.epam.reportportal.model.externalsystem.PostFormField;
-import com.epam.reportportal.model.externalsystem.PostTicketRQ;
-import com.epam.reportportal.model.externalsystem.Ticket;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.binary.DataStoreService;
-import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.entity.integration.Integration;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -79,7 +87,7 @@ import org.springframework.web.client.RestClientException;
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
 @Slf4j
-public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
+public class PostTicketCommand extends AbstractExtensionCommand<Ticket> {
 
   private final RequestEntityConverter requestEntityConverter;
 
@@ -89,21 +97,34 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
 
   private final DataStoreService dataStoreService;
 
+  private final BtsActivityPublisher btsActivityPublisher;
+
   private static final String LINKED_ISSUE_TYPE = "Relates";
 
   public PostTicketCommand(ProjectRepository projectRepository,
       RequestEntityConverter requestEntityConverter,
       CloudJiraClientProvider cloudJiraClientProvider,
-      JIRATicketDescriptionService descriptionService, DataStoreService dataStoreService) {
-    super(projectRepository);
+      JIRATicketDescriptionService descriptionService, DataStoreService dataStoreService,
+      OrganizationUserRepository organizationUserRepository,
+      OrganizationRepository organizationRepository,
+      ProjectUserRepository projectUserRepository,
+      BtsActivityPublisher btsActivityPublisher) {
+    super(projectRepository, organizationUserRepository, organizationRepository, projectUserRepository);
     this.requestEntityConverter = requestEntityConverter;
     this.cloudJiraClientProvider = cloudJiraClientProvider;
     this.descriptionService = descriptionService;
     this.dataStoreService = dataStoreService;
+    this.btsActivityPublisher = btsActivityPublisher;
+
+    // Set required permission levels
+    this.minProjectRole = ProjectRole.EDITOR;
+    this.minOrgRole = OrganizationRole.MANAGER;
+    this.minUserRole = UserRole.ADMINISTRATOR;
   }
 
   @Override
-  protected Ticket invokeCommand(Integration integration, Map<String, Object> params) {
+  protected Ticket invokeCommand(Integration integration, PluginCommandRQ pluginCommandRq) {
+    var params = pluginCommandRq.getArguments();
     PostTicketRQ ticketRQ = requestEntityConverter.getEntity(ENTITY_PARAM, params, PostTicketRQ.class);
     RequestEntityValidator.validate(ticketRQ);
     expect(ticketRQ.getFields(), not(isNull()))
@@ -185,10 +206,12 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
         linkIssues(client, issue, linkedIssue);
       }
 
-      return JIRATicketUtils.toTicket(issue,
+      Ticket ticket = JIRATicketUtils.toTicket(issue,
           CloudJiraProperties.URL.getParam(integration.getParams())
               .orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION,
                   "Url is not specified.")));
+      btsActivityPublisher.publishTicketPostedEvent(ticket, ticketRQ, pluginCommandRq.getContext(), integration);
+      return ticket;
 
     } catch (ReportPortalException e) {
       throw e;
@@ -244,7 +267,8 @@ public class PostTicketCommand extends ProjectMemberCommand<Ticket> {
         LinkIssueRequestJsonBean linkIssuesInput = new LinkIssueRequestJsonBean();
         linkIssuesInput.setInwardIssue(inwardIssue);
         linkIssuesInput.setOutwardIssue(outwardIssue);
-        linkIssuesInput.setType(issueToLink);
+        linkIssuesInput.setType(
+            issueToLink);
         jiraRestClient.issueLinksApi().linkIssues(linkIssuesInput);
       }
     }

@@ -21,26 +21,30 @@ apply from: scriptsUrl + '/signing.gradle'
 
 repositories {
     mavenCentral { url = "https://repo1.maven.org/maven2" }
-    maven { url = 'https://jitpack.io' }
-}
+    maven { url = "https://build.shibboleth.net/nexus/content/repositories/releases/" }
+    maven { url = "https://packages.atlassian.com/maven/repository/public" }
 
-dependencyManagement {
-    imports {
-        mavenBom(releaseMode ? 'com.epam.reportportal:commons-bom:5.15.2' : 'com.github.reportportal:commons-bom:5.15.2')
+    if (!releaseMode) {
+        maven { url = 'https://jitpack.io' }
     }
 }
+
 ext['spring-boot.version'] = "${springBootVersion}"
 
 dependencies {
     // ALL new dependencies should be included in shadowJar plugin!
     // transitive dependencies may be required as well. could be checked in runtime only!
-    implementation 'com.github.reportportal:commons-dao:5.15.4'
-    implementation 'com.github.reportportal:plugin-api:5.15.0'
-    annotationProcessor 'com.github.reportportal:plugin-api:5.15.0'
-
-
-    implementation("org.apache.httpcomponents.client5:httpclient5:5.4.2") // supports gzip encoding
-    implementation "org.hibernate.validator:hibernate-validator:8.0.2.Final"
+    if (releaseMode) {
+        implementation "com.epam.reportportal:service-api:${serviceApiVersion}"
+        annotationProcessor("com.epam.reportportal:service-api:${serviceApiVersion}") {
+            exclude group: 'org.springframework.modulith', module: 'spring-modulith-apt'
+        }
+    } else {
+        implementation 'com.github.reportportal:service-api:73c327819e'
+        annotationProcessor('com.github.reportportal:service-api:73c327819e') {
+            exclude group: 'org.springframework.modulith', module: 'spring-modulith-apt'
+        }
+    }
     implementation 'jakarta.el:jakarta.el-api:6.0.1'
     implementation 'org.glassfish:jakarta.el:4.0.2'
     implementation "org.springdoc:springdoc-openapi-common:1.8.0"

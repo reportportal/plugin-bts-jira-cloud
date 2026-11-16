@@ -16,9 +16,9 @@
 
 package com.epam.reportportal.extension.jira.utils;
 
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.entity.integration.Integration;
-import com.epam.ta.reportportal.entity.integration.IntegrationParams;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.IntegrationParams;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Assertions;
@@ -36,6 +36,10 @@ class IntegrationValidatorTest {
       "https://atlassian.jira.com/",
       "https://another.jira.com/",
       "https://another.jira.com",
+      "https://acme.atlassian.net/jira",
+      "https://acme.atlassian.com/jira",
+      "https://acme.atlassian.net/jira/",
+      "https://acme.atlassian.com/jira/"
   }, delimiter = ',')
   void validateThirdPartyUrl(String url) {
     Assertions.assertDoesNotThrow(() ->
@@ -49,7 +53,12 @@ class IntegrationValidatorTest {
       "https://zloi.hacker.com?jira=fake.atlassian.com",
       "https://jira.com.zloi.hacker.net",
       "https://jira.com.zloi.hacker.net/",
-      "https://another.jira.com/admin"
+      "https://another.jira.com/admin",
+      "http://acme.atlassian.net/jira",
+      "https://acme.atlassian.net/jira/admin",
+      "https://acme.atlassian.net/jira?tab=1",
+      "https://acme.atlassian.net/jira#anchor",
+      "https://evil.com/acme.atlassian.net/jira"
   }, delimiter = ',')
   void validateThirdPartyUrlFailed(String url) {
     Assertions.assertThrows(ReportPortalException.class, () ->

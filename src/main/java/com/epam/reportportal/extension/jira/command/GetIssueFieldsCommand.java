@@ -13,17 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.epam.reportportal.extension.jira.command;
 
+import static com.epam.reportportal.base.infrastructure.rules.exception.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
 import static com.epam.reportportal.extension.jira.command.utils.IssueField.AFFECTS_VERSIONS_FIELD;
 import static com.epam.reportportal.extension.jira.command.utils.IssueField.ASSIGNEE_FIELD;
 import static com.epam.reportportal.extension.jira.command.utils.IssueField.COMPONENTS_FIELD;
 import static com.epam.reportportal.extension.jira.command.utils.IssueField.FIX_VERSIONS_FIELD;
 import static com.epam.reportportal.extension.jira.command.utils.IssueField.ISSUE_TYPE_FIELD;
 import static com.epam.reportportal.extension.jira.command.utils.IssueField.PRIORITY_FIELD;
-import static com.epam.reportportal.rules.exception.ErrorType.UNABLE_INTERACT_WITH_INTEGRATION;
 
-import com.epam.reportportal.extension.ProjectManagerCommand;
+import com.epam.reportportal.api.model.PluginCommandRQ;
+import com.epam.reportportal.base.infrastructure.model.externalsystem.AllowedValue;
+import com.epam.reportportal.base.infrastructure.model.externalsystem.PostFormField;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.ProjectUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationRepository;
+import com.epam.reportportal.base.infrastructure.persistence.dao.organization.OrganizationUserRepository;
+import com.epam.reportportal.base.infrastructure.persistence.entity.integration.Integration;
+import com.epam.reportportal.base.infrastructure.persistence.entity.organization.OrganizationRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.project.ProjectRole;
+import com.epam.reportportal.base.infrastructure.persistence.entity.user.UserRole;
+import com.epam.reportportal.base.infrastructure.rules.exception.ErrorType;
+import com.epam.reportportal.base.infrastructure.rules.exception.ReportPortalException;
+import com.epam.reportportal.extension.command.AbstractExtensionCommand;
 import com.epam.reportportal.extension.jira.api.model.IssueCreateMetadata;
 import com.epam.reportportal.extension.jira.api.model.IssueTypeDetails;
 import com.epam.reportportal.extension.jira.api.model.IssueTypeIssueCreateMetadata;
@@ -34,18 +48,11 @@ import com.epam.reportportal.extension.jira.api.model.Version;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraClientProvider;
 import com.epam.reportportal.extension.jira.command.utils.CloudJiraProperties;
 import com.epam.reportportal.extension.jira.command.utils.JIRATicketUtils;
-import com.epam.reportportal.model.externalsystem.AllowedValue;
-import com.epam.reportportal.model.externalsystem.PostFormField;
-import com.epam.reportportal.rules.exception.ErrorType;
-import com.epam.reportportal.rules.exception.ReportPortalException;
-import com.epam.ta.reportportal.dao.ProjectRepository;
-import com.epam.ta.reportportal.entity.integration.Integration;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
@@ -55,16 +62,25 @@ import org.slf4j.LoggerFactory;
 /**
  * @author <a href="mailto:pavel_bortnik@epam.com">Pavel Bortnik</a>
  */
-public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormField>> {
+public class GetIssueFieldsCommand extends AbstractExtensionCommand<List<PostFormField>> {
 
   public static final String ISSUE_TYPE = "issueType";
   private static final Logger LOGGER = LoggerFactory.getLogger(GetIssueFieldsCommand.class);
 
   private final CloudJiraClientProvider cloudJiraClientProvider;
 
-  public GetIssueFieldsCommand(ProjectRepository projectRepository, CloudJiraClientProvider cloudJiraClientProvider) {
-    super(projectRepository);
+  public GetIssueFieldsCommand(ProjectRepository projectRepository,
+      OrganizationUserRepository organizationUserRepository,
+      OrganizationRepository organizationRepository,
+      ProjectUserRepository projectUserRepository,
+      CloudJiraClientProvider cloudJiraClientProvider) {
+    super(projectRepository, organizationUserRepository, organizationRepository, projectUserRepository);
     this.cloudJiraClientProvider = cloudJiraClientProvider;
+
+    // Set required permission levels
+    this.minProjectRole = ProjectRole.EDITOR;
+    this.minOrgRole = OrganizationRole.MANAGER;
+    this.minUserRole = UserRole.ADMINISTRATOR;
   }
 
   @Override
@@ -73,7 +89,9 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
   }
 
   @Override
-  protected List<PostFormField> invokeCommand(Integration integration, Map<String, Object> params) {
+  protected List<PostFormField> invokeCommand(Integration integration, PluginCommandRQ pluginCommandRq) {
+    var params = pluginCommandRq.getArguments();
+
     List<PostFormField> result = new ArrayList<>();
 
     final String issueTypeParam = Optional.ofNullable(params.get(ISSUE_TYPE))
@@ -89,7 +107,8 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
       IssueTypeDetails issueType = jiraProject.getIssueTypes().stream()
           .filter(input -> issueTypeParam.equalsIgnoreCase(input.getName()))
           .findFirst()
-          .orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION, "Issue type '" + issueTypeParam + "' not found"));
+          .orElseThrow(() -> new ReportPortalException(UNABLE_INTERACT_WITH_INTEGRATION,
+              "Issue type '" + issueTypeParam + "' not found"));
 
       IssueCreateMetadata issueCreateMetadata = client.issuesApi().getCreateIssueMeta(
           Collections.singletonList(jiraProject.getId()),
@@ -122,10 +141,10 @@ public class GetIssueFieldsCommand extends ProjectManagerCommand<List<PostFormFi
         // Provide values for custom fields with predefined options
         if (issueField.getValue().getAllowedValues() != null) {
           allowed = issueField.getValue().getAllowedValues().stream()
-            .map(value -> (JsonNode) new ObjectMapper().valueToTree(value))
-            .filter(JIRATicketUtils::isCustomField)
-            .map(jn -> new AllowedValue(jn.get("id").asText(), jn.get("value").asText()))
-            .collect(Collectors.toList());
+              .map(value -> (JsonNode) new ObjectMapper().valueToTree(value))
+              .filter(JIRATicketUtils::isCustomField)
+              .map(jn -> new AllowedValue(jn.get("id").asText(), jn.get("value").asText()))
+              .collect(Collectors.toList());
         }
 
         if (fieldID.equalsIgnoreCase(COMPONENTS_FIELD.getValue())) {
