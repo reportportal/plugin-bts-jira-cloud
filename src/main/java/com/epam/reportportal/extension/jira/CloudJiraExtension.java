@@ -76,7 +76,7 @@ public class CloudJiraExtension implements ReportPortalExtensionPoint, Disposabl
   private static final String DOCUMENTATION_LINK = "https://reportportal.io/docs/plugins/AtlassianJiraCloud";
   public static final String BINARY_DATA_PROPERTIES_FILE_ID = "binary-data.properties";
 
-  private static final String PLUGIN_ID = "jira-cloud";
+  private static final String PLUGIN_ID = "plugin-bts-jira-cloud";
 
   private static final String NAME_FIELD = "name";
 
